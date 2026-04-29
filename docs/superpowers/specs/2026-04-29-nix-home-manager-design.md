@@ -14,7 +14,7 @@ Set up a declarative, reproducible user environment on macOS using Nix and home-
 |---|---|---|
 | Scope | Home-manager only (no nix-darwin) | Manage user-level packages and dotfiles; leave macOS system settings alone for now |
 | Config style | Flakes | Lock file gives reproducibility; standard in the community |
-| Installer | Determinate Systems' `nix-installer` | Cleaner macOS install (handles APFS volume), enables flakes by default, working uninstaller |
+| Installer | Determinate Systems' `nix-installer` (which now installs Determinate Nix by default as of v3.x) | Cleaner macOS install (handles APFS volume), enables flakes by default, working uninstaller. Determinate Nix is real Nix with their `nixd` daemon layered on; flakes and home-manager work identically. |
 | Nixpkgs channel | `nixos-25.11` (stable) | Stable releases, predictable updates; bump to `nixos-26.05` when it lands in May 2026 |
 | Initial scope | Minimal — home-manager itself + small CLI package list | Easy to learn from; grow over time |
 
