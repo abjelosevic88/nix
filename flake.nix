@@ -1,5 +1,5 @@
 {
-  description = "abjelosevic home-manager config";
+  description = "abjelosevic home-manager config (multi-host: mac + linux)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
@@ -11,12 +11,20 @@
 
   outputs = { nixpkgs, home-manager, ... }:
     let
-      system = "aarch64-darwin";
-      pkgs = nixpkgs.legacyPackages.${system};
+      mkHome = { system, module }: home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.${system};
+        modules = [ module ];
+      };
     in {
-      homeConfigurations.abjelosevic = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-        modules = [ ./home.nix ];
+      homeConfigurations = {
+        "abjelosevic@mac" = mkHome {
+          system = "aarch64-darwin";
+          module = ./hosts/mac.nix;
+        };
+        "abjelosevic@linux" = mkHome {
+          system = "x86_64-linux";
+          module = ./hosts/linux.nix;
+        };
       };
     };
 }
