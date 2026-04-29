@@ -11,5 +11,6 @@
     fd
     bat
     jq
+    tree
   ];
 }
