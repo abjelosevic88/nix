@@ -89,6 +89,31 @@
   };
 
   programs.bat.enable = true;
+  programs.btop.enable = true;
+
+  programs.atuin = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  programs.ssh = {
+    enable = true;
+    includes = [ "/Users/abjelosevic/.colima/ssh_config" ];
+    matchBlocks = {
+      "github-work" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = "~/.ssh/id_rsa_htec";
+        identitiesOnly = true;
+      };
+      "github-athenastudio" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = "~/.ssh/id_rsa_athenastudio";
+        identitiesOnly = true;
+      };
+    };
+  };
 
   catppuccin = {
     enable = true;
@@ -149,6 +174,7 @@
     bat
     jq
     tree
+    htop
 
     # nvim ecosystem
     lua-language-server
@@ -174,5 +200,9 @@
     # containers
     colima
     docker-client
+    lazydocker
+
+    # http
+    xh
   ];
 }
