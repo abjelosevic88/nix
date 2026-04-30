@@ -155,6 +155,10 @@
     tree
     htop
 
+    # fonts
+    nerd-fonts.meslo-lg       # used by powerlevel10k for prompt glyphs
+    nerd-fonts.jetbrains-mono
+
     # nvim ecosystem
     lua-language-server
     stylua
