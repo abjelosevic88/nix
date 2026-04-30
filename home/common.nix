@@ -91,11 +91,6 @@
   programs.bat.enable = true;
   programs.btop.enable = true;
 
-  programs.atuin = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
   programs.ssh = {
     enable = true;
     includes = [ "/Users/abjelosevic/.colima/ssh_config" ];
