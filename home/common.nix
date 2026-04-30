@@ -91,24 +91,9 @@
   programs.bat.enable = true;
   programs.btop.enable = true;
 
-  programs.ssh = {
-    enable = true;
-    includes = [ "/Users/abjelosevic/.colima/ssh_config" ];
-    matchBlocks = {
-      "github-work" = {
-        hostname = "github.com";
-        user = "git";
-        identityFile = "~/.ssh/id_rsa_htec";
-        identitiesOnly = true;
-      };
-      "github-athenastudio" = {
-        hostname = "github.com";
-        user = "git";
-        identityFile = "~/.ssh/id_rsa_athenastudio";
-        identitiesOnly = true;
-      };
-    };
-  };
+  programs.ssh.enable = true;
+  # Per-machine identities/hosts live in home/ssh/<profile>.nix and are
+  # imported by the matching host file under hosts/.
 
   catppuccin = {
     enable = true;
@@ -123,7 +108,7 @@
     enable = true;
     settings = {
       user.name = "Aleksandar Bjelosevic";
-      user.email = "abjelosevic88@gmail.com";
+      # user.email and coderabbit.machineId are set per-host (see hosts/*.nix)
       init.defaultBranch = "main";
       pull.rebase = true;
       push.autoSetupRemote = true;
@@ -131,7 +116,6 @@
       core.editor = "nvim";
       merge.conflictstyle = "diff3";
       diff.colorMoved = "default";
-      coderabbit.machineId = "cli/fc8cef5eee4c4c39abdd4ba1649ca153";
       alias = {
         lg = ''!git log --pretty=format:"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]" --abbrev-commit -30'';
         s = "status";

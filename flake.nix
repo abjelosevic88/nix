@@ -45,6 +45,10 @@
           system = "x86_64-linux";
           module = ./hosts/linux.nix;
         };
+        "x-abjelosevic@linux-zoox" = mkHome {
+          system = "x86_64-linux";
+          module = ./hosts/linux-zoox.nix;
+        };
       };
     };
 }
