@@ -7,13 +7,33 @@
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    catppuccin = {
+      url = "github:catppuccin/nix/release-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { nixpkgs, home-manager, ... }:
+  outputs = { nixpkgs, home-manager, catppuccin, ... }:
     let
       mkHome = { system, module }: home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.${system};
-        modules = [ module ];
+        pkgs = import nixpkgs {
+          inherit system;
+          config.permittedInsecurePackages = [
+            "lima-full-1.2.2"
+            "lima-additional-guestagents-1.2.2"
+          ];
+          overlays = [
+            (_final: prev: {
+              # direnv 2.37.1 ships a fish-based test that gets killed on darwin
+              # builders; disable the check phase so the package builds.
+              direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
+            })
+          ];
+        };
+        modules = [
+          module
+          catppuccin.homeModules.catppuccin
+        ];
       };
     in {
       homeConfigurations = {

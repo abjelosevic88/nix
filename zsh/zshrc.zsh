@@ -2,7 +2,6 @@
 # ENVIRONMENT VARIABLES & EXPORTS
 # ------------------------------------------------------------------------------
 export NVM_DIR="$HOME/.nvm"
-export BAT_THEME=tokyonight_night
 
 # Disable the standard fzf plugin's completion to let fzf-tab take over
 export FZF_OMZ_COMPLETION=0

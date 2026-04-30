@@ -83,12 +83,32 @@
 
   programs.fzf.enable = true;
   programs.zoxide.enable = true;
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
+
+  programs.bat.enable = true;
+
+  catppuccin = {
+    enable = true;
+    flavor = "mocha";
+    # tmux is manually themed via programs.tmux.plugins; nvim has its own
+    # catppuccin via LazyVim. Opt out so the module doesn't conflict.
+    tmux.enable = false;
+    nvim.enable = false;
+  };
 
   programs.git = {
     enable = true;
     settings = {
       user.name = "Aleksandar Bjelosevic";
       user.email = "abjelosevic88@gmail.com";
+      init.defaultBranch = "main";
+      pull.rebase = true;
+      push.autoSetupRemote = true;
+      fetch.prune = true;
+      core.editor = "nvim";
       merge.conflictstyle = "diff3";
       diff.colorMoved = "default";
       coderabbit.machineId = "cli/fc8cef5eee4c4c39abdd4ba1649ca153";
@@ -148,5 +168,11 @@
     eza
     lazygit
     fnm
+    gh
+    go
+
+    # containers
+    colima
+    docker-client
   ];
 }
