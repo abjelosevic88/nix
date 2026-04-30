@@ -11,6 +11,19 @@
     vimAlias = true;
   };
 
+  programs.tmux = {
+    enable = true;
+    prefix = "C-a";
+    mouse = true;
+    terminal = "tmux-256color";
+    plugins = with pkgs.tmuxPlugins; [
+      catppuccin
+      resurrect
+      continuum
+    ];
+    extraConfig = builtins.readFile ../tmux/tmux.conf;
+  };
+
   xdg.configFile."nvim".source =
     config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nix/nvim";
 
