@@ -84,6 +84,38 @@
   programs.fzf.enable = true;
   programs.zoxide.enable = true;
 
+  programs.git = {
+    enable = true;
+    settings = {
+      user.name = "Aleksandar Bjelosevic";
+      user.email = "abjelosevic88@gmail.com";
+      merge.conflictstyle = "diff3";
+      diff.colorMoved = "default";
+      coderabbit.machineId = "cli/fc8cef5eee4c4c39abdd4ba1649ca153";
+      alias = {
+        lg = ''!git log --pretty=format:"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]" --abbrev-commit -30'';
+        s = "status";
+        co = "checkout";
+        cob = "checkout -b";
+        del = "branch -D";
+        br = "branch --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) %(color:green)(%(committerdate:relative)) [%(authorname)]' --sort=-committerdate";
+        save = "!git add -A && git commit -m 'chore: commit save point'";
+        undo = "reset HEAD~1 --mixed";
+        res = "!git reset --hard";
+        done = "!git push origin HEAD";
+      };
+    };
+  };
+
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      navigate = true;
+      side-by-side = true;
+    };
+  };
+
   home.file.".p10k.zsh".source =
     config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nix/zsh/p10k.zsh";
 
