@@ -17,9 +17,23 @@
     mouse = true;
     terminal = "tmux-256color";
     plugins = with pkgs.tmuxPlugins; [
-      catppuccin
+      {
+        plugin = catppuccin;
+        extraConfig = ''
+          set -g @catppuccin_flavor 'mocha'
+          set -g @catppuccin_window_status_style "rounded"
+          set -g @catppuccin_window_text " #{pane_current_command}"
+          set -g @catppuccin_window_current_text " #{pane_current_command}"
+        '';
+      }
       resurrect
-      continuum
+      {
+        plugin = continuum;
+        extraConfig = ''
+          set -g @continuum-restore 'on'
+          set -g @continuum-save-interval '10'
+        '';
+      }
     ];
     extraConfig = builtins.readFile ../tmux/tmux.conf;
   };
