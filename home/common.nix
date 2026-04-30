@@ -81,6 +81,9 @@
     ];
   };
 
+  programs.fzf.enable = true;
+  programs.zoxide.enable = true;
+
   home.file.".p10k.zsh".source =
     config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nix/zsh/p10k.zsh";
 
@@ -108,5 +111,10 @@
     tailwindcss-language-server
     vtsls
     eslint_d
+
+    # interactive shell tools
+    eza
+    lazygit
+    fnm
   ];
 }

@@ -16,10 +16,9 @@ export FZF_OMZ_COMPLETION=0
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-# NVM (Node Version Manager) — sourced from brew if present
-if command -v brew >/dev/null 2>&1; then
-  [ -s "$(brew --prefix nvm)/nvm.sh" ] && \. "$(brew --prefix nvm)/nvm.sh"
-  [ -s "$(brew --prefix nvm)/etc/bash_completion.d/nvm" ] && \. "$(brew --prefix nvm)/etc/bash_completion.d/nvm"
+# fnm (Fast Node Manager) — replaces brew nvm; reads .nvmrc and auto-switches on cd
+if command -v fnm >/dev/null 2>&1; then
+  eval "$(fnm env --use-on-cd)"
 fi
 
 # Aliases
@@ -28,8 +27,7 @@ alias vim="nvim"
 alias ls="eza --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions"
 alias pa="php artisan"
 
-# Zoxide (smarter cd)
-eval "$(zoxide init zsh)"
+# Zoxide is initialized via programs.zoxide in home/common.nix
 
 
 # ------------------------------------------------------------------------------
