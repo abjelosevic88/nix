@@ -25,7 +25,7 @@ alias vi="nvim"
 alias vim="nvim"
 alias ls="eza --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions"
 alias pa="php artisan"
-alisa ga="git add"
+alias ga="git add"
 
 # home-manager rebuild — per-host flake target
 case "$(uname)" in
