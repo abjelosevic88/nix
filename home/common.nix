@@ -162,6 +162,8 @@
     # nvim ecosystem
     lua-language-server
     stylua
+    tree-sitter
+    gcc
     gopls
     gofumpt
     delve

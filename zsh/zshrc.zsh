@@ -25,6 +25,21 @@ alias vi="nvim"
 alias vim="nvim"
 alias ls="eza --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions"
 alias pa="php artisan"
+alisa ga="git add"
+
+# home-manager rebuild — per-host flake target
+case "$(uname)" in
+  Darwin)
+    alias rebuild="home-manager switch --flake $HOME/nix#abjelosevic@mac"
+    ;;
+  Linux)
+    if [[ "$USER" == "x-abjelosevic" ]]; then
+      alias rebuild="home-manager switch --flake $HOME/nix#x-abjelosevic@linux-zoox"
+    else
+      alias rebuild="home-manager switch --flake $HOME/nix#abjelosevic@linux"
+    fi
+    ;;
+esac
 
 # Zoxide is initialized via programs.zoxide in home/common.nix
 
