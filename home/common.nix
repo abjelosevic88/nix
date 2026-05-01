@@ -91,6 +91,16 @@
   programs.bat.enable = true;
   programs.btop.enable = true;
 
+  programs.yazi = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  programs.nh = {
+    enable = true;
+    flake = "${config.home.homeDirectory}/nix";
+  };
+
   programs.ssh = {
     enable = true;
     # Opt out of the deprecated `Host *` defaults block. Its values match
@@ -132,6 +142,7 @@
         undo = "reset HEAD~1 --mixed";
         res = "!git reset --hard";
         done = "!git push origin HEAD";
+        c = "commit -m";
       };
     };
   };
@@ -159,6 +170,10 @@
     jq
     tree
     htop
+
+    # nix tooling
+    nix-output-monitor    # `nom` — readable build progress; nh uses it automatically
+    nvd                   # generation diff; nh uses it automatically after switch
 
     # fonts
     nerd-fonts.meslo-lg       # used by powerlevel10k for prompt glyphs
