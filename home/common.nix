@@ -78,6 +78,11 @@
         fi
       '')
       (lib.mkOrder 1000 (builtins.readFile ../zsh/zshrc.zsh))
+      # fzf-git: ctrl+g ctrl+{f,b,t,r,h,s,l,w,e} for files/branches/tags/etc.
+      # doInstallCheck=false: upstream check runs fish which SIGKILLs on darwin
+      (lib.mkOrder 1100 ''
+        source ${pkgs.fzf-git-sh.overrideAttrs (_: { doInstallCheck = false; })}/share/fzf-git-sh/fzf-git.sh
+      '')
     ];
   };
 

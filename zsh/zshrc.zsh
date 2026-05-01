@@ -89,4 +89,4 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 bindkey -v
 bindkey -M vicmd 'v' edit-command-line              # press `v` in normal mode → opens $EDITOR
 autoload -Uz edit-command-line; zle -N edit-command-line
-export KEYTIMEOUT=1                                 # snappier Esc
+export KEYTIMEOUT=30                                # 300ms — snappy Esc + room for chord bindings (^G^B etc.)
