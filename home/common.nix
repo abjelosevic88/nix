@@ -91,7 +91,12 @@
   programs.bat.enable = true;
   programs.btop.enable = true;
 
-  programs.ssh.enable = true;
+  programs.ssh = {
+    enable = true;
+    # Opt out of the deprecated `Host *` defaults block. Its values match
+    # SSH's own defaults anyway, so this changes no behavior.
+    enableDefaultConfig = false;
+  };
   # Per-machine identities/hosts live in home/ssh/<profile>.nix and are
   # imported by the matching host file under hosts/.
 
