@@ -41,6 +41,10 @@
           system = "aarch64-darwin";
           module = ./hosts/mac.nix;
         };
+        "abjelosevic@Aleksandars-MacBook-Pro-M4" = mkHome {
+          system = "aarch64-darwin";
+          module = ./hosts/mac.nix;
+        };
         "abjelosevic@linux" = mkHome {
           system = "x86_64-linux";
           module = ./hosts/linux.nix;
