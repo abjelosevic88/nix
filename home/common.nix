@@ -207,6 +207,7 @@
     fnm
     gh
     go
+    git-crypt
 
     # containers
     colima
