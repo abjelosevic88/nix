@@ -49,7 +49,7 @@
           system = "x86_64-linux";
           module = ./hosts/linux.nix;
         };
-        "x-abjelosevic@linux-zoox" = mkHome {
+        "x-abjelosevic@aws-u20-ngpu-84" = mkHome {
           system = "x86_64-linux";
           module = ./hosts/secrets/linux-zoox.nix;
         };
