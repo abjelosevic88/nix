@@ -205,6 +205,7 @@
     eza
     lazygit
     fnm
+    pnpm
     gh
     go
     git-crypt
