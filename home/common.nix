@@ -42,7 +42,7 @@
     enable = true;
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" "tmux" "extract" "fzf" "z" ];
+      plugins = [ "git" "tmux" "extract" "fzf" ];
     };
     plugins = [
       {
@@ -149,6 +149,7 @@
         res = "!git reset --hard";
         done = "!git push origin HEAD";
         c = "commit -m";
+        nuke = "clean -df -- .";
       };
     };
   };
