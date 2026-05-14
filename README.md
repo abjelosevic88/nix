@@ -149,7 +149,7 @@ LazyVim distribution; custom config under [nvim/lua/](nvim/lua/). Config is syml
 
 ### Git
 
-Identity is split: name lives in `home/common.nix`, email is per-host. Auto-loaded delta as pager (side-by-side, navigate). Useful aliases:
+Identity is split: name lives in `home/common.nix`, email is per-host. Git LFS is enabled. Auto-loaded delta as pager (side-by-side, navigate). Useful aliases:
 
 | Alias | Expands to |
 |---|---|
@@ -185,7 +185,7 @@ Grouped in [home/common.nix](home/common.nix):
 - **containers:** colima, docker-client, lazydocker
 - **http:** xh
 
-Plus enabled programs (full HM modules with their own config): zsh, fzf, zoxide, direnv (+ nix-direnv), bat, btop, yazi (with zsh integration as `y`), nh, neovim, tmux, git (with delta).
+Plus enabled programs (full HM modules with their own config): zsh, fzf, zoxide, direnv (+ nix-direnv), bat, btop, yazi (with zsh integration as `y`), nh, neovim, tmux, git (with LFS and delta).
 
 ### SSH
 
