@@ -99,7 +99,7 @@ The `rebuild` alias is defined in [zsh/zshrc.zsh](zsh/zshrc.zsh) and dispatches 
   - `zsh-autosuggestions`
   - `zsh-syntax-highlighting`
 - **Aliases:** `vi`/`vim` → `nvim`, `ls` → `eza` with icons/git, `pa` → `php artisan`, `ga` → `git add`, `rebuild` → host-aware `home-manager switch`
-- **Vi mode** (`bindkey -v`), `KEYTIMEOUT=30` (300ms — short enough that Esc→normal feels instant, long enough that chord bindings like `^G^B` work)
+- **Vi mode** (`bindkey -v`), `KEYTIMEOUT=30` (300ms — short enough that Esc→normal feels instant, long enough that chord bindings like `^G^B` work), shell line editing in `$EDITOR` with `Esc` then `v` or `Ctrl+E` / `Cmd+E`
 - **Node:** `fnm env --use-on-cd` auto-switches versions on `cd` into a dir with `.nvmrc`
 
 ### Terminal — kitty (Catppuccin Mocha + MesloLGS Nerd Font)
@@ -110,6 +110,7 @@ Background image at `kitty/bg-blurred.png` at 0.1 opacity. The macOS profile rem
 |---|---|---|
 | `Cmd+A`–`Z` (most letters) | `Ctrl+A`–`Z` | start-of-line, EOF, paste, clear, search history, etc. |
 | `Cmd+T` | `Ctrl+T` | fzf file widget |
+| `Cmd+E` | `Ctrl+E` | edit current shell line in `$EDITOR` |
 | `Cmd+G` | `Ctrl+G` | fzf-git prefix |
 | `Cmd+R` | `Ctrl+R` | fzf history search |
 | `Cmd+S` | sends `:w<Enter>` literally | nvim quick-save (overrides Ctrl+S because XOFF is useless) |

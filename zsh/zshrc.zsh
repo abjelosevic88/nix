@@ -88,6 +88,8 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 # KEY BINDINGS
 # ------------------------------------------------------------------------------
 bindkey -v
-bindkey -M vicmd 'v' edit-command-line              # press `v` in normal mode → opens $EDITOR
 autoload -Uz edit-command-line; zle -N edit-command-line
+bindkey -M vicmd 'v' edit-command-line              # press `v` in normal mode → opens $EDITOR
+bindkey -M viins '^E' edit-command-line             # press Ctrl+E in insert mode, or Cmd+E in kitty → opens $EDITOR
+bindkey -M vicmd '^E' edit-command-line             # press Ctrl+E/Cmd+E from vi normal mode too
 export KEYTIMEOUT=30                                # 300ms — snappy Esc + room for chord bindings (^G^B etc.)
