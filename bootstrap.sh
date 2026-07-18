@@ -97,9 +97,11 @@ if [[ ! -f "$HOME/.ssh/config.local" ]]; then
   sshconfig_note="created (optional — machine-local ssh hosts/keys go here)"
 fi
 
-# ~-shorten paths for display
-display_repo="${repo/#$HOME/\~}"
-display_marker="${marker/#$HOME/\~}"
+# ~-shorten paths for display (avoid ${var/pat/\~}: bash 5.2+ keeps the backslash)
+display_repo=$repo
+display_marker=$marker
+if [[ $repo == "$HOME"/* ]]; then display_repo="~${repo#"$HOME"}"; fi
+if [[ $marker == "$HOME"/* ]]; then display_marker="~${marker#"$HOME"}"; fi
 
 echo
 echo "Done:"
