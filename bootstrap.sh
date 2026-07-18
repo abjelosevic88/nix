@@ -48,7 +48,12 @@ choose() {
     IFS= read -rsn1 key
     if [[ "$key" == $'\e' ]]; then        # collect arrow-key escape sequence
       rest=""
-      read -rsn2 -t 0.05 rest || true
+      # macOS /bin/bash is 3.2, which only allows integer read timeouts
+      if (( BASH_VERSINFO[0] >= 4 )); then
+        read -rsn2 -t 0.05 rest || true
+      else
+        read -rsn2 -t 1 rest || true
+      fi
       key+="$rest"
     fi
 
