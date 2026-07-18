@@ -1,0 +1,102 @@
+# Ghostty configuration — migrated from kitty (~/nix/kitty).
+#
+# Managed by Nix home-manager as an out-of-store symlink, mirroring kitty:
+#   ~/.config/ghostty -> ~/nix/ghostty        (wired in home/mac.nix)
+# Edits here are live; reload the terminal (Supacode/Ghostty) to apply.
+
+# ── Theme (Catppuccin Mocha) ───────────────────────────────────────────────
+# Loaded from ./themes/catppuccin-mocha — a local copy of the kitty palette so
+# it survives Ghostty's 1.2.0 built-in-theme rename (catppuccin-mocha -> "Catppuccin Mocha").
+theme = catppuccin-mocha
+
+# ── Font (kitty shared.conf) ───────────────────────────────────────────────
+font-family = MesloLGS Nerd Font Mono
+font-size = 20
+# kitty: modify_font cell_height +10px. Ghostty takes a bare integer here;
+# tune to taste if the line spacing differs from kitty.
+adjust-cell-height = 10
+
+# ── macOS behaviour ────────────────────────────────────────────────────────
+macos-option-as-alt = true          # kitty: macos_option_as_alt yes
+desktop-notifications = true
+
+# Kitty graphics (image) protocol is built into Ghostty — no config needed.
+# NOTE: kitty's background_image (bg-blurred.png @ 0.1 opacity) is NOT migrated:
+# Ghostty has no background-image support. background-opacity/blur exist but are
+# a different effect, so nothing is set here.
+
+# ── CSI-u disambiguation (kitty shared.conf) ───────────────────────────────
+# Lets nvim distinguish Ctrl-I from Tab and Ctrl-O from <C-o>.
+keybind = ctrl+i=text:\x1b[105;5u
+keybind = ctrl+o=text:\x1b[111;5u
+
+# ── Map Cmd -> Ctrl for terminal control (kitty mac/kitty.conf) ─────────────
+# Ghostty's `text:` action uses Zig string-literal escapes, so kitty's
+# `send_text all \xNN` sequences port over verbatim.
+keybind = cmd+a=text:\x01
+keybind = cmd+b=text:\x02
+keybind = cmd+c=text:\x03
+keybind = cmd+d=text:\x04
+keybind = cmd+e=text:\x05
+keybind = cmd+f=text:\x06
+keybind = cmd+g=text:\x07
+keybind = cmd+h=text:\x08
+keybind = cmd+j=text:\x0a
+keybind = cmd+k=text:\x0b
+keybind = cmd+l=text:\x0c
+keybind = cmd+n=text:\x0e
+keybind = cmd+p=text:\x10
+keybind = cmd+r=text:\x12
+keybind = cmd+t=text:\x14
+keybind = cmd+u=text:\x15
+keybind = cmd+x=text:\x18
+keybind = cmd+z=text:\x1a
+keybind = cmd+/=text:\x1f
+
+# Cmd+I / Cmd+O -> CSI-u (same encoding as ctrl+i/ctrl+o above)
+keybind = cmd+i=text:\x1b[105;5u
+keybind = cmd+o=text:\x1b[111;5u
+
+# Cmd+1..4 -> CSI-u encoded digits
+keybind = cmd+1=text:\x1b[49;5u
+keybind = cmd+2=text:\x1b[50;5u
+keybind = cmd+3=text:\x1b[51;5u
+keybind = cmd+4=text:\x1b[52;5u
+
+# Cmd+Shift+H / L -> previous / next Supacode tab (left / right).
+# NOTE: this replaces the old kitty tmux window-switch mapping (Esc+H / Esc+L).
+keybind = cmd+shift+h=previous_tab
+keybind = cmd+shift+l=next_tab
+
+# Cmd+Option+H/J/K/L -> move focus between Supacode split panes.
+keybind = cmd+alt+h=goto_split:left
+keybind = cmd+alt+j=goto_split:down
+keybind = cmd+alt+k=goto_split:up
+keybind = cmd+alt+l=goto_split:right
+
+# Cmd+S -> ":w<CR>"  (write in nvim)
+keybind = cmd+s=text::w\r
+
+# Cmd+V -> paste (kitty: paste_from_clipboard, which overrode its \x16 mapping)
+keybind = cmd+v=paste_from_clipboard
+
+# ── Supacode-specific overrides ────────────────────────────────────────────
+# Cmd+W -> Ctrl-W (\x17): delete the previous word, matching kitty. Binding it
+# to an action also consumes the key, so it still won't close the Supacode
+# surface/tab. (macOS "Close Tab" is separately remapped to Cmd+Opt+Shift+W.)
+keybind = cmd+w=text:\x17
+
+# Cmd+Q: kitty mapped this to Ctrl-Q (\x11), which also stops the app from
+# quitting on Cmd+Q. Ported faithfully — delete this line to restore the native
+# macOS Quit shortcut.
+keybind = cmd+q=text:\x11
+
+# Cmd+Shift+T -> open a new tab in Supacode. (cmd+t itself is remapped to
+# Ctrl-T above for terminal use, so the new-tab action lives on cmd+shift+t.)
+keybind = cmd+shift+t=new_tab
+
+# Cmd+Shift+W -> close the current tab/surface, keeping Supacode open.
+# Uses close_surface (Ghostty's own cmd+w default) rather than close_tab, which
+# in Supacode routes to a window/app-close path and hides the app. (cmd+w is
+# remapped to Ctrl-W above for delete-word, so close lives on cmd+shift+w.)
+keybind = cmd+shift+w=close_surface

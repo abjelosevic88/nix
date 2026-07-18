@@ -1,0 +1,19 @@
+# Copy to ~/.ssh/config.local and edit. It is pulled in via Include from the
+# home-manager-managed ~/.ssh/config and is never committed — machine-local
+# hosts and keys live here (the key files themselves are always manual too).
+#
+# Includes sit at the top of the managed config, so entries here can also
+# override managed ones (ssh uses the first matching value).
+#
+# Examples:
+#
+# Host github-work
+#   HostName github.com
+#   User git
+#   IdentityFile ~/.ssh/id_ed25519_work
+#   IdentitiesOnly yes
+#
+# Host build-box
+#   HostName 10.0.0.42
+#   User me
+#   IdentityFile ~/.ssh/id_ed25519_build

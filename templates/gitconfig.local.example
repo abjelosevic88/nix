@@ -1,0 +1,10 @@
+# Copy to ~/.gitconfig.local and edit. It is loaded via [include] from the
+# home-manager-managed gitconfig and is never committed — machine-local git
+# identity and per-machine tool state live here.
+[user]
+	name = Your Name
+	email = you@example.com
+
+# Optional per-machine tool state:
+# [coderabbit]
+# 	machineId = cli/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
