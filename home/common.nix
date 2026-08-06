@@ -141,11 +141,9 @@
     # templates/ssh-config.local.example; ssh silently skips it when absent.
     # Includes render at the top of the generated config, so local entries
     # can also override managed ones (first match wins in ssh).
-    # The colima include lives here too: colima is installed on all machines
-    # (home.packages) and ssh skips the file where colima was never started.
+    # home/mac.nix appends ~/.colima/ssh_config after this one.
     includes = [
       "${config.home.homeDirectory}/.ssh/config.local"
-      "${config.home.homeDirectory}/.colima/ssh_config"
     ];
   };
   # Shared-per-role ssh hosts would live in home/ssh/<role>.nix, imported by
@@ -279,9 +277,7 @@
     nix-output-monitor    # `nom` — readable build progress; nh uses it automatically
     nvd                   # generation diff; nh uses it automatically after switch
 
-    # fonts
-    nerd-fonts.meslo-lg       # used by powerlevel10k for prompt glyphs
-    nerd-fonts.jetbrains-mono
+    # fonts live in home/fonts.nix — only hosts with a display import them
 
     # nvim ecosystem
     lua-language-server
@@ -306,10 +302,8 @@
     gh
     go
 
-    # containers
-    colima
-    docker-client
-    lazydocker
+    # containers: colima is macOS-only (home/mac.nix); the docker CLI + TUI are
+    # in home/docker.nix, imported per host so the NAS can skip them.
 
     # http
     xh
