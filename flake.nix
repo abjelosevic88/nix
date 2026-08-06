@@ -28,6 +28,7 @@
       machines = {
         personal-mac = { system = "aarch64-darwin"; };
         personal-linux = { system = "x86_64-linux"; };
+        personal-nixos = { system = "x86_64-linux"; };
         work-mac = { system = "aarch64-darwin"; };
         work-linux = { system = "x86_64-linux"; };
       };
