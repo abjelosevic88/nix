@@ -25,7 +25,7 @@ in
       forwardAgent = true;
     };
 
-    "truenas" = {
+    "nas truenas" = {
       hostname = ts "abjelosevic-truenas-scale";
       user = "abjelosevic88";
     };
