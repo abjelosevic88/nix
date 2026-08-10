@@ -5,6 +5,22 @@ let
   # name is stable, the IP is not.
   tailnet = "tail0c02cf.ts.net";
   ts = name: "${name}.${tailnet}";
+
+  # Tailnet paths break silently: a peer sleeps and its disco key rotates, the
+  # router remaps the UDP port (no UPnP/NAT-PMP here, so mappings are short and
+  # the external port moves), or a direct path collapses to a DERP relay. ssh
+  # sees none of it — the session just hangs until TCP gives up, surfacing much
+  # later as "Read from remote host: Operation timed out" / "Broken pipe".
+  #
+  # Keepalives do double duty: the probes hold the NAT mapping open, and they
+  # bound detection to ~2min (20s x 6) instead of the kernel's TCP timeout.
+  # Set per-host rather than via `Host *`: common.nix opts out of the deprecated
+  # default block, and this only applies to tailnet hops. Neither survives a
+  # real outage — use tmux/mosh for that.
+  keepalive = {
+    serverAliveInterval = 20;
+    serverAliveCountMax = 6;
+  };
 in
 {
   # Personal tailnet hosts. Short alias -> MagicDNS name, so `ssh nixos`
@@ -14,30 +30,30 @@ in
   # Machines that are tailnet-only but never ssh'd into (windows, phones)
   # are deliberately absent.
   programs.ssh.matchBlocks = {
-    "nixos" = {
+    "nixos" = keepalive // {
       hostname = ts "abjelosevic-home-nixos";
       user = "abjelosevic";
     };
 
-    "server home-server" = {
+    "server home-server" = keepalive // {
       hostname = ts "abjelosevic-home-server";
       user = "abjelosevic88";
       forwardAgent = true;
     };
 
-    "nas truenas" = {
+    "nas truenas" = keepalive // {
       hostname = ts "abjelosevic-truenas-scale";
       user = "abjelosevic88";
     };
 
-    "ubuntu home-linux" = {
+    "ubuntu home-linux" = keepalive // {
       hostname = ts "abjelosevic-home-ubuntu";
       user = "abjelosevic";
       forwardAgent = true;
     };
 
     # GL.iNet KVM appliance — BusyBox dropbear, root only.
-    "kvm glkvm" = {
+    "kvm glkvm" = keepalive // {
       hostname = ts "glkvm";
       user = "root";
     };

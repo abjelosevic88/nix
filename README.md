@@ -184,6 +184,8 @@ Everything else is handled — see [Headless hosts](#headless-hosts) below.
 
 The terminfo half is not optional. ssh forwards `$TERM`, so a session opened from kitty arrives on the NAS as `TERM=xterm-kitty`; with the emulator gone its terminfo goes too, and ncurses falls back to dumb behaviour — tmux, `clear`, `less` and nvim all misbehave. `home/headless.nix` installs the terminfo databases (a few hundred KB) without the emulators.
 
+It also has to **export `TERMINFO_DIRS` itself**. `targets.genericLinux` does set that variable, but under `systemd.user.sessionVariables`, which writes `~/.config/environment.d/10-home-manager.conf` — read by the systemd *user manager* for user units, not by an ssh login shell. Verified: `personal-nas`'s `home.sessionVariables` had no `TERMINFO_DIRS` before this was added, so the terminfo packages would have sat in the profile unreachable.
+
 Nerd fonts moved to [home/fonts.nix](home/fonts.nix) for the same reason: on a box you only ever reach over ssh, the glyphs are rendered by the terminal you connect *from*, so fonts on the remote host are never read.
 
 **Measured saving: 746 MB** — 655 MB for kitty + both nerd fonts + docker, and a further 91 MB for tailscale. Those figures are *net*: the four packages pull 188 store paths, but 175 are shared with packages the NAS keeps (glibc and friends), leaving 13 uniquely dropped; tailscale contributes 17 of its 58. Per-package closure sizes do not add up here — always diff the closures, not the packages.
