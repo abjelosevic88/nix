@@ -1,13 +1,17 @@
-{ lib, pkgs, ... }:
+{ lib, pkgs, paseoSrc, ... }:
+let
+  paseoPackage = pkgs.callPackage "${paseoSrc}/nix/package.nix" {
+    npmDepsHash = "sha256-oXz8hMk+5DlTYK8OndUAjB+RJMDbPqobVGXLFeoH++o=";
+  };
+in
 {
-  # Paseo local agent daemon — Linux-only. The CLI itself is installed outside
-  # nix (npm install -g @getpaseo/cli puts it at ~/.local/bin/paseo); nix only
-  # manages the user service that keeps the daemon running. Machine-specific
-  # extras (e.g. a tailnet socket proxy bound to this machine's tailscale IP)
-  # stay in unmanaged units under ~/.config/systemd/user/.
+  # Paseo local agent daemon and CLI — both built by Nix. Machine-specific
+  # runtime state stays mutable under ~/.paseo.
   # Safe to import on darwin: the options exist there but systemd.user.enable
   # defaults to false, and this whole block is gated off.
   config = lib.mkIf pkgs.stdenv.isLinux {
+    home.packages = [ paseoPackage ];
+
     systemd.user.services.paseo = {
       Unit = {
         Description = "Paseo agent daemon";
@@ -18,8 +22,7 @@
       Service = {
         Type = "simple";
         WorkingDirectory = "%h";
-        Environment = [ "PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin" ];
-        ExecStart = "%h/.local/bin/paseo daemon start --foreground";
+        ExecStart = "${paseoPackage}/bin/paseo daemon start --foreground";
         Restart = "on-failure";
         RestartSec = 5;
       };

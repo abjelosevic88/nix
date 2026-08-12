@@ -4,16 +4,12 @@
 
   programs.home-manager.enable = true;
 
-  # Put user-local binaries (claude, codex, paseo, cargo/uv installs) on PATH for
-  # every login shell. Written to hm-session-vars.sh and sourced by the zsh module,
-  # so it survives reboots — unlike an ad-hoc `export PATH=...` in a subshell.
-  home.sessionPath = [ "$HOME/.local/bin" ];
-
-  programs.neovim = {
-    enable = true;
-    defaultEditor = true;
-    viAlias = true;
-    vimAlias = true;
+  # Neovim's full configuration is a live repo-backed directory below. Install
+  # the editor directly so Home Manager does not also generate a competing
+  # ~/.config/nvim/init.lua inside that directory.
+  home.sessionVariables = {
+    EDITOR = "nvim";
+    VISUAL = "nvim";
   };
 
   programs.tmux = {
@@ -146,7 +142,7 @@
       "${config.home.homeDirectory}/.ssh/config.local"
     ];
   };
-  # Shared-per-role ssh hosts would live in home/ssh/<role>.nix, imported by
+  # Shared-per-role SSH hosts live in home/ssh/<role>.nix, imported by
   # the matching role module under home/roles/. Single-machine hosts belong
   # in the unmanaged ~/.ssh/config.local instead.
 
@@ -157,6 +153,8 @@
     # catppuccin via LazyVim. Opt out so the module doesn't conflict.
     tmux.enable = false;
     nvim.enable = false;
+    # Catppuccin 26.05 still targets Home Manager's renamed gemini-cli option.
+    gemini-cli.enable = false;
   };
 
   programs.git = {
@@ -257,6 +255,18 @@
     };
   };
 
+  # Preserve Claude Code deep links without relying on its self-installer.
+  xdg.desktopEntries = lib.mkIf pkgs.stdenv.isLinux {
+    claude-code-url-handler = {
+      name = "Claude Code URL Handler";
+      comment = "Handle claude-cli:// deep links for Claude Code";
+      exec = "${pkgs.claude-code}/bin/claude --handle-uri %u";
+      noDisplay = true;
+      type = "Application";
+      mimeType = [ "x-scheme-handler/claude-cli" ];
+    };
+  };
+
   home.file.".p10k.zsh".source =
     config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nix/zsh/p10k.zsh";
 
@@ -265,6 +275,7 @@
 
   home.packages = with pkgs; [
     # cli essentials
+    neovim
     ripgrep
     fd
     bat
@@ -297,8 +308,11 @@
 
     # interactive shell tools
     eza
-    fnm
+    # One Nix-owned Node toolchain replaces fnm and global npm/pnpm installs.
+    nodejs_24
     pnpm
+    claude-code
+    codex
     gh
     go
 

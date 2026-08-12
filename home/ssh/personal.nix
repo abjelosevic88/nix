@@ -18,8 +18,8 @@ let
   # default block, and this only applies to tailnet hops. Neither survives a
   # real outage — use tmux/mosh for that.
   keepalive = {
-    serverAliveInterval = 20;
-    serverAliveCountMax = 6;
+    ServerAliveInterval = 20;
+    ServerAliveCountMax = 6;
   };
 in
 {
@@ -29,33 +29,33 @@ in
   #
   # Machines that are tailnet-only but never ssh'd into (windows, phones)
   # are deliberately absent.
-  programs.ssh.matchBlocks = {
+  programs.ssh.settings = {
     "nixos" = keepalive // {
-      hostname = ts "abjelosevic-home-nixos";
-      user = "abjelosevic";
+      HostName = ts "abjelosevic-home-nixos";
+      User = "abjelosevic";
     };
 
     "server home-server" = keepalive // {
-      hostname = ts "abjelosevic-home-server";
-      user = "abjelosevic88";
-      forwardAgent = true;
+      HostName = ts "abjelosevic-home-server";
+      User = "abjelosevic88";
+      ForwardAgent = true;
     };
 
     "nas truenas" = keepalive // {
-      hostname = ts "abjelosevic-truenas-scale";
-      user = "abjelosevic88";
+      HostName = ts "abjelosevic-truenas-scale";
+      User = "abjelosevic88";
     };
 
     "ubuntu home-linux" = keepalive // {
-      hostname = ts "abjelosevic-home-ubuntu";
-      user = "abjelosevic";
-      forwardAgent = true;
+      HostName = ts "abjelosevic-home-ubuntu";
+      User = "abjelosevic";
+      ForwardAgent = true;
     };
 
     # GL.iNet KVM appliance — BusyBox dropbear, root only.
     "kvm glkvm" = keepalive // {
-      hostname = ts "glkvm";
-      user = "root";
+      HostName = ts "glkvm";
+      User = "root";
     };
   };
 }

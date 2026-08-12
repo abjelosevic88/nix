@@ -1,75 +1,95 @@
 {
-  description = "home-manager dotfiles — role (personal/work) x platform (mac/linux) profiles";
+  description = "Declarative NixOS and home-manager configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    # The pinned 25.11 release channel ships lazygit 0.56, which predates the
-    # portraitModeAutoMaxWidth/portraitModeAutoMinHeight config keys. Pull just
-    # lazygit from unstable (0.62+) via an overlay in mkHome so its auto-portrait
-    # thresholds are tunable; everything else stays on the stable channel.
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     catppuccin = {
-      url = "github:catppuccin/nix/release-25.11";
+      url = "github:catppuccin/nix/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    paseo = {
+      url = "github:getpaseo/paseo/bfec7ac3adc5e8835e873ee75c7b325af6c7a8c3";
+      flake = false;
     };
   };
 
-  outputs = { nixpkgs, nixpkgs-unstable, home-manager, catppuccin, ... }:
+  outputs = inputs@{
+    nixpkgs,
+    nixpkgs-unstable,
+    home-manager,
+    catppuccin,
+    paseo,
+    ...
+  }:
     let
       lib = nixpkgs.lib;
 
-      # Profile name -> settings. The module is hosts/<name>.nix by convention,
-      # so adding a machine profile is one line here plus (optionally) one new
-      # hosts file composing common + platform + role.
+      nixpkgsConfig = {
+        allowUnfree = true;
+        permittedInsecurePackages = [
+          "lima-full-1.2.2"
+          "lima-additional-guestagents-1.2.2"
+        ];
+      };
+
+      overlays = [
+        (_final: prev: {
+          # direnv 2.37.1 ships a fish-based test that gets killed on darwin.
+          direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
+        })
+        (final: _prev:
+          let
+            unstable = import nixpkgs-unstable {
+              system = final.stdenv.hostPlatform.system;
+              config = nixpkgsConfig;
+            };
+          in
+          {
+            # Keep fast-moving interactive tools current without moving the
+            # rest of each machine away from the pinned release branch.
+            lazygit = unstable.lazygit;
+            claude-code = unstable.claude-code;
+            codex = unstable.codex;
+          })
+      ];
+
+      # Standalone home-manager profiles for non-NixOS machines. Identity is
+      # taken from the invoking account, so these continue to require --impure.
       machines = {
         personal-mac = { system = "aarch64-darwin"; };
         personal-linux = { system = "x86_64-linux"; };
-        personal-nixos = { system = "x86_64-linux"; };
         personal-nas = { system = "x86_64-linux"; };
         work-mac = { system = "aarch64-darwin"; };
         work-linux = { system = "x86_64-linux"; };
       };
 
-      # Identity comes from the invoking user's environment so no usernames or
-      # home paths live in the repo. Requires --impure; the `rebuild` function
-      # (zsh/zshrc.zsh) and bootstrap.sh always pass it.
       identityModule = {
         home.username =
           let u = builtins.getEnv "USER";
           in
           if u != "" then u
-          else throw "USER is empty — run home-manager with --impure (use the `rebuild` alias)";
+          else throw "USER is empty — run standalone home-manager with --impure";
         home.homeDirectory =
           let h = builtins.getEnv "HOME";
           in
           if h != "" then h
-          else throw "HOME is empty — run home-manager with --impure (use the `rebuild` alias)";
+          else throw "HOME is empty — run standalone home-manager with --impure";
       };
 
       mkHome = name: { system }: home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
-          inherit system;
-          config.permittedInsecurePackages = [
-            "lima-full-1.2.2"
-            "lima-additional-guestagents-1.2.2"
-          ];
-          overlays = [
-            (_final: prev: {
-              # direnv 2.37.1 ships a fish-based test that gets killed on darwin
-              # builders; disable the check phase so the package builds.
-              direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
-            })
-            # lazygit from unstable (see nixpkgs-unstable input above): 0.62+ adds
-            # the tunable auto-portrait thresholds consumed in home/common.nix.
-            (_final: _prev: {
-              lazygit = (import nixpkgs-unstable { inherit system; }).lazygit;
-            })
-          ];
+          inherit system overlays;
+          config = nixpkgsConfig;
         };
+        extraSpecialArgs = { paseoSrc = paseo; };
         modules = [
           (./hosts + "/${name}.nix")
           catppuccin.homeModules.catppuccin
@@ -79,5 +99,45 @@
     in
     {
       homeConfigurations = lib.mapAttrs mkHome machines;
+
+      nixosConfigurations.personal-nixos = lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {
+          inherit inputs;
+          paseoSrc = paseo;
+        };
+        modules = [
+          ./nixos/personal-nixos
+          home-manager.nixosModules.home-manager
+          {
+            nixpkgs = {
+              inherit overlays;
+              config = nixpkgsConfig;
+            };
+
+            # Pin both modern flakes and legacy <nixpkgs> lookups to this lock
+            # file. The root channel is no longer part of a system rebuild.
+            nix.channel.enable = false;
+            nix.registry.nixpkgs.flake = nixpkgs;
+            nix.nixPath = [ "nixpkgs=${nixpkgs}" ];
+
+            # NixOS and the user's home now activate as one generation.
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            # Preserve any pre-existing unmanaged file on the first integrated
+            # activation instead of failing or overwriting it.
+            home-manager.backupFileExtension = "pre-nix";
+            home-manager.extraSpecialArgs = { paseoSrc = paseo; };
+            home-manager.users.abjelosevic = {
+              imports = [
+                ./hosts/personal-nixos.nix
+                catppuccin.homeModules.catppuccin
+              ];
+              home.username = "abjelosevic";
+              home.homeDirectory = "/home/abjelosevic";
+            };
+          }
+        ];
+      };
     };
 }

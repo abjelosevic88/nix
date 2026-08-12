@@ -1,13 +1,13 @@
 # nix
 
-Home-manager flake covering shell, editor, terminal, multiplexer, git, and CLI tooling on macOS and Linux. One source of truth, composed as **role (personal/work) × platform (mac/linux)** profiles. No personal data lives in the repo: git identity comes from an unmanaged `~/.gitconfig.local`, and the username/home directory are read from the environment at build time.
+One declarative flake for NixOS plus Home Manager profiles on macOS and Linux. The NixOS host activates its OS and home configuration together; foreign Linux and macOS hosts continue to use standalone Home Manager. Mutable credentials and application data stay outside the Nix store.
 
 ## At a glance
 
 | | |
 |---|---|
-| **Manager** | [home-manager](https://github.com/nix-community/home-manager) (standalone, not nix-darwin) |
-| **Channel** | `nixos-25.11` (pinned in [flake.nix](flake.nix)) |
+| **Manager** | NixOS + integrated Home Manager; standalone Home Manager elsewhere |
+| **Channel** | `nixos-26.05` (pinned by `flake.lock`) |
 | **Theme** | Catppuccin Mocha across kitty, tmux, fzf, nvim |
 | **Profiles** | `personal-mac` · `personal-linux` · `personal-nixos` · `personal-nas` · `work-mac` · `work-linux` |
 | **Rebuild** | `rebuild` function — reads the machine's profile from `~/.config/nix-machine` |
@@ -16,7 +16,7 @@ Home-manager flake covering shell, editor, terminal, multiplexer, git, and CLI t
 
 ```
 nix/
-├── flake.nix                  # inputs + machines attrset -> homeConfigurations (one line per profile)
+├── flake.nix                  # NixOS + standalone Home Manager outputs
 ├── bootstrap.sh               # one-time per-machine setup (profile marker + ~/.gitconfig.local)
 ├── templates/
 │   ├── gitconfig.local.example    # identity template -> ~/.gitconfig.local
@@ -29,7 +29,7 @@ nix/
 │   ├── headless.nix           # ssh-only boxes: terminfo for the terminals you connect from
 │   ├── fonts.nix              # nerd fonts — imported by mac.nix + linux-desktop.nix
 │   ├── docker.nix             # docker CLI + lazydocker (every host but the NAS)
-│   ├── paseo.nix              # Paseo daemon service (Linux-only; CLI installed via npm, not nix)
+│   ├── paseo.nix              # Nix-built Paseo daemon + CLI for generic Linux
 │   ├── tailscale.nix          # tailscale CLI — only where no daemon-side CLI exists
 │   └── roles/
 │       ├── personal.nix       # personal machines: personal ssh hosts
@@ -41,6 +41,8 @@ nix/
 │   ├── personal-nas.nix       # TrueNAS SCALE — as personal-nixos + targets.genericLinux
 │   ├── work-mac.nix
 │   └── work-linux.nix
+├── nixos/
+│   └── personal-nixos/        # system + hardware config for the NixOS host
 ├── kitty/                     # shared.conf + mac/ + linux/ + Catppuccin theme
 ├── tmux/tmux.conf             # prefix C-a, status bar, M-H/L window nav
 ├── zsh/
@@ -56,7 +58,7 @@ nix/
 Three mechanisms keep the repo generic while every machine gets the right config:
 
 1. **Profiles** — `hosts/<profile>.nix` composes `home/common.nix` + a platform module + a role module, plus any host-specific extras. Work machines get none of the personal role's extras (no personal ssh hosts).
-2. **Identity from the environment** — the flake reads `$USER`/`$HOME` via `builtins.getEnv` (hence `--impure`), so usernames and home paths never appear in the repo and any account name just works.
+2. **Identity** — standalone Home Manager profiles read `$USER`/`$HOME` via `builtins.getEnv` and require `--impure`. The integrated NixOS profile declares its system account explicitly.
 3. **Machine marker** — each machine stores its profile name in `~/.config/nix-machine` (outside the repo; pure-eval nix couldn't see a gitignored file inside it anyway). The `rebuild` function reads it and targets the right flake output.
 
 Git identity (name/email, plus per-machine tool state like `coderabbit.machineId`) lives in an unmanaged `~/.gitconfig.local`, pulled in via `[include]` from the managed gitconfig. Git silently skips the include when the file is missing.
@@ -65,14 +67,14 @@ Git identity (name/email, plus per-machine tool state like `coderabbit.machineId
 |---|---|---|---|
 | `personal-mac` | `aarch64-darwin` | personal | common + mac + roles/personal + docker |
 | `personal-linux` | `x86_64-linux` | personal | common + linux + linux-desktop + roles/personal + docker + tailscale + paseo |
-| `personal-nixos` | `x86_64-linux` | personal | common + linux + linux-desktop + roles/personal + docker |
+| `personal-nixos` | `x86_64-linux` | personal | NixOS + integrated common + linux + linux-desktop + roles/personal + docker |
 | `personal-nas` | `x86_64-linux` | personal | common + linux + headless + roles/personal + `targets.genericLinux` |
 | `work-mac` | `aarch64-darwin` | work | common + mac + roles/work + docker |
 | `work-linux` | `x86_64-linux` | work | common + linux + linux-desktop + roles/work + docker |
 
 A profile drops a module when the host OS already provides it, or when the host has no surface to use it on:
 
-- **`personal-nixos`** omits `home/paseo.nix` and `home/tailscale.nix` — the system layer (`/etc/nixos/configuration.nix`) owns paseo, tailscaled and the login shell. A second paseo daemon would fight the first over `~/.paseo`; a second tailscale CLI just shadows the version-matched one. See [NixOS hosts](#nixos-hosts).
+- **`personal-nixos`** omits `home/paseo.nix` and `home/tailscale.nix` — the flake's NixOS layer owns paseo, tailscaled and the login shell. A second paseo daemon would fight the first over `~/.paseo`; a second tailscale CLI would be redundant. See [NixOS hosts](#nixos-hosts).
 - **`personal-nas`** omits `home/docker.nix` (SCALE runs its apps on its own docker, so a nix `docker-client` earlier on `PATH` would shadow it and skew against the system daemon), `home/tailscale.nix` and `home/paseo.nix` (both run as TrueNAS apps, so their sockets are inside containers the host CLI cannot reach), and `home/linux-desktop.nix` (no display — see [Headless hosts](#headless-hosts)).
 
 The general rule: **if the host OS or its app layer already runs the daemon, don't let home-manager ship a second copy of the client.** `home/tailscale.nix` now applies to `personal-linux` only — the one machine where nothing else supplies a CLI. `personal-nixos` gets it from `services.tailscale` and the NAS from its TrueNAS app.
@@ -90,40 +92,25 @@ git clone https://github.com/<you>/nix.git ~/nix
 ~/nix/bootstrap.sh
 
 # 4. First switch — --impure is required (identity comes from $USER/$HOME)
-nix run home-manager/release-25.11 -- switch --flake ~/nix#<profile> --impure
+nix run home-manager/release-26.05 -- switch --flake ~/nix#<profile> --impure
 
 # 5. Restart shell. From now on:
 rebuild
 ```
 
-`rebuild` is defined in [zsh/zshrc.zsh](zsh/zshrc.zsh): it reads `~/.config/nix-machine`, validates the profile against `hosts/`, and runs `home-manager switch --flake ~/nix#<profile> --impure`. Extra args pass through (e.g. `rebuild --show-trace`).
+`rebuild` is defined in [zsh/zshrc.zsh](zsh/zshrc.zsh). It rebuilds the whole NixOS + Home Manager generation for `personal-nixos`; other profiles use standalone Home Manager.
 
 ## NixOS hosts
 
-Home-manager stays **standalone** on NixOS — it is not imported as a NixOS module. The system layer (`/etc/nixos/configuration.nix`) owns the kernel, services and login shell; this repo owns the user's dotfiles, exactly as on the Macs. Keeping it standalone matters here: the flake reads identity from `$USER`/`$HOME`, which under `sudo nixos-rebuild` would be `root`, and the NixOS-module path would build against the *system* nixpkgs instead of the 25.11 pin, diverging from every other machine and skipping `mkHome`'s overlays.
+`nixosConfigurations.personal-nixos` imports both the system module under `nixos/personal-nixos/` and the existing `hosts/personal-nixos.nix` Home Manager profile. They use one pinned nixpkgs instance and activate as a single generation:
 
-Steps 1–3 of the bootstrap above are already done by the NixOS install (nix is present, the repo is cloned). Three things must be set on the system side first — nothing else works without the first one:
-
-```nix
-# /etc/nixos/configuration.nix
-
-# 1. Flakes — off by default on NixOS; `--flake` and `nix run` both fail without this
-nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-# 2. zsh as the login shell — home-manager's zsh isn't in /etc/shells, so chsh won't take
-programs.zsh.enable = true;
-programs.zsh.enableGlobalCompInit = false;  # home-manager + oh-my-zsh already run compinit
-users.users."<you>".shell = pkgs.zsh;
+```bash
+sudo nixos-rebuild switch --flake ~/nix#personal-nixos
 ```
 
-3. **Don't let a service run twice.** Anything the system already runs (`services.paseo`, `services.tailscale`) must not also get a home-manager user unit — they would race for the same state dir and port. That's the whole reason `personal-nixos` exists as a separate profile from `personal-linux`.
+The flake disables channels for future generations and pins both the registry and legacy `<nixpkgs>` lookup to `flake.lock`. System services and desktop software live in the NixOS module; user-facing development tools and dotfiles live in Home Manager. Paseo and Tailscale remain system services, so the NixOS Home Manager profile deliberately does not import their user-service modules.
 
-Then `sudo nixos-rebuild switch`, and continue from step 3 of the bootstrap (`~/nix/bootstrap.sh`, pick `personal-nixos`).
-
-Two consequences worth knowing:
-
-- **PATH order** — `~/.nix-profile/bin` precedes `/run/current-system/sw/bin`, so a package in both `home.packages` and `environment.systemPackages` resolves to home-manager's copy for this user. Keep `git`/`neovim` in `systemPackages` anyway so root has them.
-- **Graphical sessions** — `hm-session-vars.sh` is sourced by zsh, so terminals pick up `home.sessionPath` immediately, but apps launched from the desktop session need a full logout/login after the shell change.
+The standalone `homeConfigurations.personal-nixos` output was removed to prevent a second Home Manager profile from competing with the integrated one. Roll back the OS and home together from the boot menu or with `nixos-rebuild switch --rollback`.
 
 ## Foreign-distro hosts (TrueNAS SCALE)
 
@@ -194,14 +181,14 @@ Nerd fonts moved to [home/fonts.nix](home/fonts.nix) for the same reason: on a b
 
 | Command | What it does |
 |---|---|
-| `rebuild` | `home-manager switch` for this machine's profile |
+| `rebuild` | NixOS + Home Manager switch on NixOS; Home Manager switch elsewhere |
 | `killport <port>` / `kp <port>` | Kill the process listening on a TCP port (`killport -9 <port>` to force) |
 | `nh home switch ~/nix -- --impure` | Same switch with prettier output via [nh](https://github.com/viperML/nh) |
 | `nix flake update` | Bump `flake.lock` (nixpkgs / home-manager / catppuccin) |
 | `home-manager generations` | List previous activations |
 | `/nix/var/nix/profiles/per-user/$USER/home-manager-N-link/activate` | Roll back to generation N |
 
-Note: anything that evaluates the flake (`nix flake show`, `nix flake check`, `home-manager build`, …) needs `--impure` because identity is read from the environment.
+Note: standalone Home Manager outputs need `--impure` because their identity is read from the environment. The NixOS output is pure.
 
 ## What's configured
 
@@ -211,7 +198,7 @@ Note: anything that evaluates the flake (`nix flake show`, `nix flake check`, `h
 - **Plugins (zsh native):** `powerlevel10k`, `you-should-use`, `fzf-tab`, `zsh-autosuggestions`, `zsh-syntax-highlighting`
 - **Aliases/functions:** `vi`/`vim` → `nvim`, `ls` → `eza` with icons/git, `pa` → `php artisan`, `ga` → `git add`, `killport`/`kp`, `rebuild`
 - **Vi mode** (`bindkey -v`), `KEYTIMEOUT=30` (300ms — short enough that Esc→normal feels instant, long enough that chord bindings like `^G^B` work), shell line editing in `$EDITOR` with `Esc` then `v` or `Ctrl+E` / `Cmd+E`
-- **Node:** `fnm env --use-on-cd` auto-switches versions on `cd` into a dir with `.nvmrc`
+- **Node:** Node 24 and pnpm are installed by Home Manager. Projects that need another runtime should provide a flake dev shell and use direnv.
 - **Zoxide:** initialized as `cd`, with `z`/`zi` kept as compatibility commands
 
 ### Terminal — kitty (Catppuccin Mocha + MesloLGS Nerd Font)
@@ -293,7 +280,7 @@ Grouped in [home/common.nix](home/common.nix):
 - **essentials:** ripgrep, fd, bat, jq, tree, htop, lsof
 - **nix tooling:** nix-output-monitor, nvd
 - **nvim ecosystem:** see LSP list above
-- **interactive:** eza, fnm, pnpm, gh, go
+- **interactive:** eza, Node 24, pnpm, Claude Code, Codex, gh, go
 - **http:** xh
 
 Three groups are deliberately *not* in `common.nix`, because the right answer differs per machine:
@@ -304,19 +291,19 @@ Three groups are deliberately *not* in `common.nix`, because the right answer di
 | `colima` | [home/mac.nix](home/mac.nix) | macOS only — it boots a Lima VM to provide the daemon darwin lacks; Linux gets its daemon from the OS |
 | `nerd-fonts.meslo-lg`, `nerd-fonts.jetbrains-mono` | [home/fonts.nix](home/fonts.nix) | hosts with a display: via `home/mac.nix` and `home/linux-desktop.nix` |
 
-Plus enabled programs (full HM modules with their own config): zsh, fzf, zoxide, direnv (+ nix-direnv), bat, btop, yazi (with zsh integration as `y`), nh, neovim, tmux, git (with LFS and delta), lazygit.
+Plus enabled programs (full HM modules with their own config): zsh, fzf, zoxide, direnv (+ nix-direnv), bat, btop, yazi (with zsh integration as `y`), nh, tmux, git (with LFS and delta), lazygit. Neovim itself is a Home Manager package while its complete configuration is the live repo-backed `nvim/` directory.
 
 ### SSH
 
 `programs.ssh` enabled with the default `Host *` block opted out. The managed config includes `~/.ssh/config.local` on every machine, plus `~/.colima/ssh_config` on macOS (appended by [home/mac.nix](home/mac.nix), where colima lives); ssh skips either silently when absent.
 
-Nix manages only the ssh *config* — key files are always copied/generated manually per machine. Where a new entry goes depends on scope:
+Nix manages SSH configuration and declares the NixOS key bootstrap service. Private key material remains stateful and outside the store. Where a new entry goes depends on scope:
 
 | Key/host is for… | Put the config in |
 |---|---|
 | just this one machine (the common case) | `~/.ssh/config.local` — unmanaged, no rebuild needed |
-| all machines of one role | new `home/ssh/<role>.nix` with `matchBlocks`, imported from `home/roles/<role>.nix` |
-| every machine | `programs.ssh.matchBlocks` in [home/common.nix](home/common.nix) |
+| all machines of one role | new `home/ssh/<role>.nix` with `programs.ssh.settings`, imported from `home/roles/<role>.nix` |
+| every machine | `programs.ssh.settings` in [home/common.nix](home/common.nix) |
 
 `~/.ssh/config.local` is seeded by `bootstrap.sh` from [templates/ssh-config.local.example](templates/ssh-config.local.example). It sits at the top of the managed config, so its entries can also override managed ones (first match wins).
 
@@ -327,6 +314,7 @@ Nix manages only the ssh *config* — key files are always copied/generated manu
 | Add a CLI package | `home.packages = [ ... ]` in [home/common.nix](home/common.nix) |
 | Add a package only some hosts should have | new `home/<thing>.nix`, imported from the `hosts/` files that want it (see `home/docker.nix`) |
 | Add a GUI/desktop package (Linux) | [home/linux-desktop.nix](home/linux-desktop.nix), not `home/linux.nix` — keeps it off `personal-nas` |
+| Add a NixOS service or system package | [nixos/personal-nixos/default.nix](nixos/personal-nixos/default.nix) |
 | Add a zsh alias | [zsh/zshrc.zsh](zsh/zshrc.zsh) |
 | Add a kitty key (mac) | [kitty/mac/kitty.conf](kitty/mac/kitty.conf), follow the `Cmd → \xNN` pattern |
 | Add a tmux binding | [tmux/tmux.conf](tmux/tmux.conf) |
@@ -339,7 +327,7 @@ Nix manages only the ssh *config* — key files are always copied/generated manu
 
 ## Notes & gotchas
 
-- **`--impure` is load-bearing:** identity comes from `$USER`/`$HOME` at eval time. Forgetting it fails fast with a message telling you so. Don't run switches under `sudo` (wrong `$USER`).
+- **`--impure` is only for standalone profiles:** identity comes from `$USER`/`$HOME` on non-NixOS hosts. The NixOS output declares identity explicitly and is rebuilt with `sudo`.
 - **`flake.nix` overlays:** `direnv` has `doCheck = false` because the upstream test runs fish, which gets SIGKILL'd on darwin builders. `fzf-git-sh` gets the same treatment inline in [home/common.nix](home/common.nix) for the same reason.
 - **`permittedInsecurePackages`:** lima-full / lima-additional-guestagents 1.2.2 are whitelisted (colima dependency). Consequence: Hydra never evaluated colima, so it is a **cache miss on every platform** — verified for both `x86_64-linux` and `aarch64-darwin` — and builds from source along with lima and qemu. Since colima is macOS-only now ([home/mac.nix](home/mac.nix)), only the Macs pay that.
 - **out-of-store symlinks:** `~/.p10k.zsh`, `~/.config/nvim`, and `~/.config/kitty` use `mkOutOfStoreSymlink` and assume the repo is cloned at `~/nix` — edits to those trees take effect without rebuild. Everything else is store-managed and needs `rebuild` to pick up changes.

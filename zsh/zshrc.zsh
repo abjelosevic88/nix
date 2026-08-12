@@ -1,8 +1,6 @@
 # ------------------------------------------------------------------------------
 # ENVIRONMENT VARIABLES & EXPORTS
 # ------------------------------------------------------------------------------
-export NVM_DIR="$HOME/.nvm"
-
 # Disable the standard fzf plugin's completion to let fzf-tab take over
 export FZF_OMZ_COMPLETION=0
 
@@ -14,11 +12,6 @@ export FZF_OMZ_COMPLETION=0
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-# fnm (Fast Node Manager) — replaces brew nvm; reads .nvmrc and auto-switches on cd
-if command -v fnm >/dev/null 2>&1; then
-  eval "$(fnm env --use-on-cd --log-level quiet)"
-fi
 
 # Aliases
 alias vi="nvim"
@@ -67,10 +60,10 @@ killport() {
 }
 alias kp="killport"
 
-# home-manager rebuild — the machine's profile name is read from a marker file
+# Declarative rebuild — the machine's profile name is read from a marker file
 # OUTSIDE the repo (pure-eval nix can't see gitignored files, and the marker is
-# machine-local by nature). Written once by bootstrap.sh. --impure lets the
-# flake read $USER/$HOME for identity, so no usernames live in the repo.
+# machine-local by nature). NixOS rebuilds the whole OS and Home Manager as one
+# generation; other hosts continue to use standalone Home Manager.
 rebuild() {
   local marker="${XDG_CONFIG_HOME:-$HOME/.config}/nix-machine"
   if [[ ! -r "$marker" ]]; then
@@ -85,7 +78,11 @@ rebuild() {
     echo "rebuild: profile '$profile' has no hosts/$profile.nix — fix $marker" >&2
     return 1
   fi
-  home-manager switch --flake "$HOME/nix#$profile" --impure "$@"
+  if [[ "$profile" == "personal-nixos" ]]; then
+    sudo nixos-rebuild switch --flake "$HOME/nix#$profile" "$@"
+  else
+    home-manager switch --flake "$HOME/nix#$profile" --impure "$@"
+  fi
 }
 
 # Zoxide is initialized via programs.zoxide in home/common.nix
@@ -122,16 +119,6 @@ show_file_or_dir_preview="if [ -d {} ]; then eza --tree --color=always {} | head
 export FZF_CTRL_T_OPTS="--preview '$show_file_or_dir_preview'"
 export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
 
-
-# ------------------------------------------------------------------------------
-# LOCAL TOOLS / PATH
-# ------------------------------------------------------------------------------
-
-# Local user env (cargo, uv, etc. install to ~/.local/bin/env)
-[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
-
-# Antigravity (only where installed)
-[ -d "$HOME/.antigravity/antigravity/bin" ] && export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
 
 if [[ "$TERM_PROGRAM" == "iTerm.app" && -e "$HOME/.iterm2_shell_integration.zsh" ]]; then
   source "$HOME/.iterm2_shell_integration.zsh"

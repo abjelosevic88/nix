@@ -115,7 +115,11 @@ echo "  1. Set your git identity for THIS machine (name + email — never commit
 echo "       \$EDITOR ~/.gitconfig.local"
 echo
 echo "  2. Apply the config for the first time (one-time long form):"
-echo "       nix run home-manager/release-25.11 -- switch --flake $display_repo#$profile --impure"
+if [[ "$profile" == "personal-nixos" ]]; then
+  echo "       sudo nixos-rebuild switch --flake $display_repo#$profile"
+else
+  echo "       nix run home-manager/release-26.05 -- switch --flake $display_repo#$profile --impure"
+fi
 echo
 echo "  3. Restart your shell. From now on, updating is just:"
 echo "       rebuild"
