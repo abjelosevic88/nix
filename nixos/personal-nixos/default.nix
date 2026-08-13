@@ -5,6 +5,26 @@
   paseoSrc,
   ...
 }:
+let
+  paseoPackage = (pkgs.callPackage "${paseoSrc}/nix/package.nix" {
+    npmDepsHash = "sha256-oXz8hMk+5DlTYK8OndUAjB+RJMDbPqobVGXLFeoH++o=";
+  }).overrideAttrs (previousAttrs: {
+    preBuild = (previousAttrs.preBuild or "") + ''
+      nodePtySourceDirectory="packages/server/node_modules/node-pty"
+      pushd "$nodePtySourceDirectory"
+      ../../../../node_modules/.bin/node-gyp rebuild
+      node scripts/post-install.js
+      popd
+    '';
+    postInstall = (previousAttrs.postInstall or "") + ''
+      nodePtyBuildDirectory="packages/server/node_modules/node-pty/build/Release"
+      nodePtyRuntimeDirectory="packages/server/node_modules/node-pty/build/Release"
+      test -f "$nodePtyBuildDirectory/pty.node"
+      mkdir -p "$out/lib/paseo/$nodePtyRuntimeDirectory"
+      cp -a "$nodePtyBuildDirectory/." "$out/lib/paseo/$nodePtyRuntimeDirectory/"
+    '';
+  });
+in
 {
   imports = [
     ./hardware-configuration.nix
@@ -58,9 +78,7 @@
 
     paseo = {
       enable = true;
-      package = pkgs.callPackage "${paseoSrc}/nix/package.nix" {
-        npmDepsHash = "sha256-oXz8hMk+5DlTYK8OndUAjB+RJMDbPqobVGXLFeoH++o=";
-      };
+      package = paseoPackage;
       user = "abjelosevic";
       group = "users";
       inheritUserEnvironment = false;
