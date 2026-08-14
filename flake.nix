@@ -94,6 +94,9 @@
           (./hosts + "/${name}.nix")
           catppuccin.homeModules.catppuccin
           identityModule
+          # `hms` rebuilds this machine's own profile; the config name must
+          # match and --impure is required, so bake both in per machine.
+          { home.shellAliases.hms = "home-manager switch --flake ~/nix#${name} --impure"; }
         ];
       };
     in
