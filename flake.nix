@@ -138,6 +138,9 @@
               ];
               home.username = "abjelosevic";
               home.homeDirectory = "/home/abjelosevic";
+              # System and home are one generation here, so `hms` rebuilds the
+              # whole system — unlike the standalone machines in mkHome.
+              home.shellAliases.hms = "sudo nixos-rebuild switch --flake ~/nix#personal-nixos";
             };
           }
         ];

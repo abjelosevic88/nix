@@ -129,6 +129,7 @@ in
   environment.systemPackages = with pkgs; [
     curl
     wget
+    google-cloud-sdk
   ];
 
   systemd.services.generate-abjelosevic-ssh-key = {

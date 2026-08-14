@@ -4,6 +4,10 @@
 
   programs.home-manager.enable = true;
 
+  # Stop `home-manager switch` from advertising unread news; run
+  # `home-manager news --flake ~/nix#<machine> --impure` to read manually.
+  news.display = "silent";
+
   # Neovim's full configuration is a live repo-backed directory below. Install
   # the editor directly so Home Manager does not also generate a competing
   # ~/.config/nvim/init.lua inside that directory.
