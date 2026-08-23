@@ -34,14 +34,27 @@ in
         Description = "Paseo agent daemon";
         Wants = [ "network-online.target" ];
         After = [ "network-online.target" ];
+        # Never give up restarting this remote-control service after repeated
+        # failures; without it, recovery requires an out-of-band SSH login.
+        StartLimitIntervalSec = 0;
       };
 
       Service = {
         Type = "simple";
         WorkingDirectory = "%h";
         ExecStart = "${paseoPackage}/bin/paseo daemon start --foreground";
-        Restart = "on-failure";
+        # "always", not "on-failure": the desktop app shuts the daemon down via a
+        # websocket RPC (clean exit 0) when it restarts, which on-failure ignores —
+        # leaving the daemon dead until started by hand.
+        Restart = "always";
         RestartSec = 5;
+
+        # Paseo launches agent and voice processes inside this service cgroup.
+        # Apply pressure before they threaten the rest of the server, then
+        # restart the complete service if aggregate usage continues growing.
+        MemoryHigh = "10G";
+        MemoryMax = "12G";
+        MemorySwapMax = "2G";
       };
 
       Install.WantedBy = [ "default.target" ];
