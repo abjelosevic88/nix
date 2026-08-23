@@ -319,6 +319,7 @@
     codex
     gh
     go
+    python3
 
     # containers: colima is macOS-only (home/mac.nix); the docker CLI + TUI are
     # in home/docker.nix, imported per host so the NAS can skip them.

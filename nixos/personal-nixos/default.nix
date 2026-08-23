@@ -7,21 +7,23 @@
 }:
 let
   paseoPackage = (pkgs.callPackage "${paseoSrc}/nix/package.nix" {
-    npmDepsHash = "sha256-oXz8hMk+5DlTYK8OndUAjB+RJMDbPqobVGXLFeoH++o=";
+    npmDepsHash = "sha256-mF8N1sBkSt2/ZgtB511lqv1knlQ0lmicZxsoucbWZfE=";
   }).overrideAttrs (previousAttrs: {
+    # v0.5.0's npm rebuild inherits --ignore-scripts on this nixpkgs release,
+    # so compile node-pty explicitly and add the omitted binary to the output.
     preBuild = (previousAttrs.preBuild or "") + ''
-      nodePtySourceDirectory="packages/server/node_modules/node-pty"
-      pushd "$nodePtySourceDirectory"
+      pushd packages/server/node_modules/node-pty
       ../../../../node_modules/.bin/node-gyp rebuild
       node scripts/post-install.js
       popd
     '';
     postInstall = (previousAttrs.postInstall or "") + ''
-      nodePtyBuildDirectory="packages/server/node_modules/node-pty/build/Release"
+      nodePtyBinary=$(find . -type f \
+        -path '*/node-pty/build/Release/pty.node' -print -quit)
+      test -n "$nodePtyBinary"
       nodePtyRuntimeDirectory="packages/server/node_modules/node-pty/build/Release"
-      test -f "$nodePtyBuildDirectory/pty.node"
       mkdir -p "$out/lib/paseo/$nodePtyRuntimeDirectory"
-      cp -a "$nodePtyBuildDirectory/." "$out/lib/paseo/$nodePtyRuntimeDirectory/"
+      cp -a "$nodePtyBinary" "$out/lib/paseo/$nodePtyRuntimeDirectory/pty.node"
     '';
   });
 in
@@ -34,9 +36,21 @@ in
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # /work lives on the XFS volume (label "work") in the vgwork LVM thin pool on
+  # nvme1n1. Declared here rather than in hardware-configuration.nix so that
+  # re-running nixos-generate-config cannot silently drop it: an unmounted /work
+  # leaves an empty directory on the root filesystem and every project path
+  # under it disappears without an error.
+  fileSystems."/work" = {
+    device = "/dev/disk/by-uuid/1a3c8062-e07c-4744-a5d3-4fbcd91d2d9f";
+    fsType = "xfs";
+  };
+
   networking = {
     hostName = "nixos";
     networkmanager.enable = true;
+    # Paseo listens on all local addresses, but only tailnet peers may reach it.
+    firewall.interfaces.tailscale0.allowedTCPPorts = [ 6767 ];
   };
 
   time.timeZone = "Europe/Sarajevo";
@@ -82,6 +96,7 @@ in
       user = "abjelosevic";
       group = "users";
       inheritUserEnvironment = false;
+      listenAddress = "0.0.0.0";
       # Paseo runtime data and credentials remain mutable in ~/.paseo.
     };
   };

@@ -16,7 +16,7 @@
     };
 
     paseo = {
-      url = "github:getpaseo/paseo/bfec7ac3adc5e8835e873ee75c7b325af6c7a8c3";
+      url = "github:getpaseo/paseo/b8a31034ca36301067edadc2d622f42f4a4f7a37";
       flake = false;
     };
   };

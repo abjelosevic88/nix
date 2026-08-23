@@ -1,8 +1,25 @@
 { lib, pkgs, paseoSrc, ... }:
 let
-  paseoPackage = pkgs.callPackage "${paseoSrc}/nix/package.nix" {
-    npmDepsHash = "sha256-oXz8hMk+5DlTYK8OndUAjB+RJMDbPqobVGXLFeoH++o=";
-  };
+  paseoPackage = (pkgs.callPackage "${paseoSrc}/nix/package.nix" {
+    npmDepsHash = "sha256-mF8N1sBkSt2/ZgtB511lqv1knlQ0lmicZxsoucbWZfE=";
+  }).overrideAttrs (previousAttrs: {
+    # v0.5.0's npm rebuild inherits --ignore-scripts on this nixpkgs release,
+    # so compile node-pty explicitly and add the omitted binary to the output.
+    preBuild = (previousAttrs.preBuild or "") + ''
+      pushd packages/server/node_modules/node-pty
+      ../../../../node_modules/.bin/node-gyp rebuild
+      node scripts/post-install.js
+      popd
+    '';
+    postInstall = (previousAttrs.postInstall or "") + ''
+      nodePtyBinary=$(find . -type f \
+        -path '*/node-pty/build/Release/pty.node' -print -quit)
+      test -n "$nodePtyBinary"
+      nodePtyRuntimeDirectory="packages/server/node_modules/node-pty/build/Release"
+      mkdir -p "$out/lib/paseo/$nodePtyRuntimeDirectory"
+      cp -a "$nodePtyBinary" "$out/lib/paseo/$nodePtyRuntimeDirectory/pty.node"
+    '';
+  });
 in
 {
   # Paseo local agent daemon and CLI — both built by Nix. Machine-specific
