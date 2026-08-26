@@ -239,10 +239,10 @@
       # it fails the width gate, independent of height.
       gui.portraitMode = "auto";
       gui.portraitModeAutoMinHeight = 20;
-      # lazygit 0.56 moved git.paging (object) to git.pagers (array). Using the
-      # new schema avoids the startup migration, which fails to write back to the
-      # read-only nix store symlink.
-      git.pagers = [
+      # lazygit 0.64 renamed git.pagers to git.diffRenderers and the nested
+      # pager key to command. Using the current schema avoids a startup migration,
+      # which cannot write back through the read-only Nix store symlink.
+      git.diffRenderers = [
         {
           colorArg = "always";
           # delta reads theme/navigate/line-numbers/etc. from the [delta] gitconfig
@@ -253,7 +253,7 @@
           # the removed line directly above the added line at full pane width, which
           # is far easier to review. The terminal pager keeps --side-by-side via
           # core.pager, so this only affects lazygit.
-          pager = "delta --paging=never";
+          command = "delta --paging=never";
         }
       ];
     };
