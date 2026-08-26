@@ -46,17 +46,6 @@
           }
         ];
       }
-      {
-        System = [
-          {
-            Paseo = {
-              href = "https://paseo.lab.bjelke.org";
-              description = "Agent orchestrator (tailnet only)";
-              icon = "mdi-robot";
-            };
-          }
-        ];
-      }
     ];
   };
 
