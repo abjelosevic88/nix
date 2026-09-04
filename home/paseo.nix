@@ -1,7 +1,7 @@
 { lib, pkgs, paseoSrc, ... }:
 let
   paseoPackage = (pkgs.callPackage "${paseoSrc}/nix/package.nix" {
-    npmDepsHash = "sha256-mF8N1sBkSt2/ZgtB511lqv1knlQ0lmicZxsoucbWZfE=";
+    npmDepsHash = "sha256-0hOGev0HglOQmofzPQMfiWh1opg6cpiEgsfK22AKcGk=";
   }).overrideAttrs (previousAttrs: {
     # v0.5.0's npm rebuild inherits --ignore-scripts on this nixpkgs release,
     # so compile node-pty explicitly and add the omitted binary to the output.
@@ -43,6 +43,20 @@ in
         Type = "simple";
         WorkingDirectory = "%h";
         ExecStart = "${paseoPackage}/bin/paseo daemon start --foreground";
+        # The user manager's PATH is the distro default, which contains no nix
+        # directories. Paseo probes PATH for provider CLIs (claude, codex, ...)
+        # and hides every model when none resolve, so list the Home Manager
+        # profile first and keep ~/.local/bin for natively installed tools.
+        Environment = [
+          (lib.concatStringsSep ":" [
+            "PATH=%h/.nix-profile/bin"
+            "/nix/var/nix/profiles/default/bin"
+            "%h/.local/bin"
+            "/usr/local/bin"
+            "/usr/bin"
+            "/bin"
+          ])
+        ];
         # "always", not "on-failure": the desktop app shuts the daemon down via a
         # websocket RPC (clean exit 0) when it restarts, which on-failure ignores —
         # leaving the daemon dead until started by hand.

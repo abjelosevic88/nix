@@ -60,11 +60,11 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1786410043,
-        "narHash": "sha256-JTbODJPDcd3d8U7lO4MVUU3Yo0jz2KQSAHXka+IWBEo=",
+        "lastModified": 1788400875,
+        "narHash": "sha256-JIHQ6xNAN53cdo6zZ72LRcQ9lpvnABCnNE4hldJ5uZU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "8e2eeb9477c9d40009a5bd51cd3eef2f5abb26f1",
+        "rev": "5545adfad2e98de106a5544ca7067e03010410bd",
         "type": "github"
       },
       "original": {
@@ -77,17 +77,17 @@
     "paseo": {
       "flake": false,
       "locked": {
-        "lastModified": 1787492531,
-        "narHash": "sha256-EmQ1fQxAoUEDdRVv0D7GswZI8RENYbtK31XwXFn4x/8=",
+        "lastModified": 1788307654,
+        "narHash": "sha256-JUVjE32qS29ZNh1tSOLy9YtyPD3+qjhz+W30lWtVqaw=",
         "owner": "getpaseo",
         "repo": "paseo",
-        "rev": "b8a31034ca36301067edadc2d622f42f4a4f7a37",
+        "rev": "9400a49af670fdb5db4af58e73f8df98588dbea9",
         "type": "github"
       },
       "original": {
         "owner": "getpaseo",
         "repo": "paseo",
-        "rev": "b8a31034ca36301067edadc2d622f42f4a4f7a37",
+        "rev": "9400a49af670fdb5db4af58e73f8df98588dbea9",
         "type": "github"
       }
     },
