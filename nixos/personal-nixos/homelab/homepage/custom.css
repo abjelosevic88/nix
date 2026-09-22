@@ -1,0 +1,711 @@
+/* Higher contrast: darker, more opaque cards over the wallpaper */
+.service-card {
+  background-color: rgba(9, 14, 26, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.service-card:hover {
+  background-color: rgba(18, 26, 46, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* stat sub-blocks inside cards (Kuma counts, Beszel metrics) */
+.service-card [class*="bg-theme-200"],
+.service-card [class*="dark:bg-theme-900"] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* section titles: lift off the background */
+[class*="groups-header"], .text-theme-800, .dark .text-theme-300 {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+/* internet-exposed services (Cloudflare tunnel) — tagged by custom.js */
+.service-card.exposed {
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.service-card.exposed:hover {
+  border-color: rgba(245, 158, 11, 0.75);
+}
+
+.exposed-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.62rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(252, 211, 77);
+  background-color: rgba(245, 158, 11, 0.16);
+  border-bottom-left-radius: 0.375rem;
+  padding: 3px 7px 4px;
+  pointer-events: none;
+}
+
+/* header info widgets (server stats row) */
+.information-widget-resource, .information-widget-resources {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* ---- calendar modal ---------------------------------------------------- */
+/* The Calendar group has no `tab:` in settings.yaml, so Homepage renders it on
+   every tab. It stays hidden until custom.js puts .calendar-open on <body>. */
+
+.services-group.calendar-modal {
+  display: none;
+}
+
+/* The dimmer is a pseudo-element on #layout-groups, NOT a child of <body>.
+   #inner_wrapper has backdrop-filter, which creates a stacking context, so a
+   body-level overlay paints over the whole app including this modal. Anchoring
+   it to #layout-groups (a flex item with z-index auto, so not its own stacking
+   context) puts dimmer and modal in the same context — .container's — where
+   their z-indexes actually compete. Kept under quicklaunch's z-40. */
+body.calendar-open #layout-groups::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+body.calendar-open .services-group.calendar-modal {
+  display: block;
+  position: fixed;
+  z-index: 31;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(94vw, 780px);
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 0.35rem 0.7rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.75rem;
+  /* opaque and unfiltered on purpose — the panel must stay crisp */
+  background-color: rgb(12, 17, 30);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+}
+
+/* the card already sits on the modal panel — drop its own chrome */
+body.calendar-open .services-group.calendar-modal .service-card {
+  background-color: transparent !important;
+  border-color: transparent;
+}
+
+/* Two columns: calendar left, clicked day's events right. Homepage already
+   renders that day's events in a strip under the grid (it filters to exactly
+   the selected day), so this only re-places the existing nodes — no JS.
+   Of the container's three children (weekday labels, day grid, event strip)
+   only the strip is `flex flex-col`. */
+.services-group.calendar-modal .pl-1.pr-1.pb-1.w-full {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  grid-template-areas:
+    "labels list"
+    "grid   list";
+  column-gap: 0.9rem;
+  align-items: start;
+}
+
+.services-group.calendar-modal .pl-1.pr-1.pb-1.w-full > *:nth-child(1) {
+  grid-area: labels;
+}
+
+.services-group.calendar-modal .pl-1.pr-1.pb-1.w-full > *:nth-child(2) {
+  grid-area: grid;
+}
+
+.services-group.calendar-modal .pl-1.pr-1.pb-1.w-full > .flex.flex-col {
+  grid-area: list;
+  align-self: stretch;
+  min-height: 11rem;
+  max-height: 20rem;
+  overflow-y: auto;
+  padding-left: 0.9rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+}
+
+/* React always renders the strip, with no children when the day is empty */
+.services-group.calendar-modal
+  .pl-1.pr-1.pb-1.w-full
+  > .flex.flex-col:empty::before {
+  content: "No releases on this day";
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* narrow screens: fall back to stacking the list under the calendar */
+@media (max-width: 640px) {
+  .services-group.calendar-modal .pl-1.pr-1.pb-1.w-full {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "labels"
+      "grid"
+      "list";
+  }
+
+  .services-group.calendar-modal .pl-1.pr-1.pb-1.w-full > .flex.flex-col {
+    min-height: 0;
+    padding: 0.6rem 0 0;
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* the datetime info widget is the trigger */
+.information-widget-datetime {
+  cursor: pointer;
+  border-radius: 0.375rem;
+  padding: 0 0.35rem;
+  transition: background-color 120ms ease;
+}
+
+.information-widget-datetime:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* temps row injected by custom.js under the Server / NAS info widgets —
+   match the widget numbers above it (the NAS row sits outside
+   .information-widget-resources, so it needs its own shadow) */
+.temps-line {
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.temps-line .temp-hot {
+  color: rgb(248, 113, 113);
+}
+
+/* Phones: the NAS widget normally wraps to its own row below the Server
+   group, leaving the right half of Server's last row (uptime) empty. Flatten
+   both widgets (display: contents) into one 2-column grid so the blocks pair
+   up — [cpu|mem] [disk|disk] [uptime|NAS] — with both captions and temps
+   rows side by side beneath. Roots are tagged .server-widget / .nas-widget
+   by custom.js; auto-placement fills around the pinned NAS cells. */
+@media (max-width: 639px) {
+  #widgets-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .server-widget,
+  .nas-widget,
+  .server-widget > .flex.flex-row,
+  .nas-widget > .flex.flex-row {
+    display: contents;
+  }
+
+  .server-widget .information-widget-label,
+  .server-widget .temps-line {
+    grid-column: 1;
+  }
+
+  .nas-widget .information-widget-resource {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  /* the plain resources widget's label has no information-widget-label class */
+  .nas-widget .pt-1.text-center:not(.temps-line) {
+    grid-column: 2;
+    grid-row: 4;
+  }
+
+  .nas-widget .temps-line {
+    grid-column: 2;
+    grid-row: 5;
+  }
+
+  #widgets-wrap > .information-widget-greeting,
+  #widgets-wrap > #information-widgets-right {
+    grid-column: 1 / -1;
+  }
+
+  /* air between the metrics grid and the backup/date lines */
+  #widgets-wrap > .information-widget-greeting {
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  #widgets-wrap > .information-widget-greeting span {
+    margin-right: 0; /* undo mr-3 so centering is true */
+  }
+
+  #widgets-wrap > #information-widgets-right {
+    margin-top: 0.5rem;
+  }
+}
+
+/* Desktop: same idea as the phone layout — backup + date as a centered,
+   spaced pair. The metrics widgets span both grid rows, so the pair sits
+   vertically centered against them in the leftover right-hand space
+   (instead of the date hugging the far right edge). */
+@media (min-width: 640px) {
+  #widgets-wrap {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    row-gap: 0.75rem;
+  }
+
+  .server-widget {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  .nas-widget {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+
+  #widgets-wrap > .information-widget-greeting {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: end;
+    justify-self: center;
+    text-align: center;
+  }
+
+  #widgets-wrap > .information-widget-greeting span {
+    margin-right: 0; /* undo mr-3 so centering is true */
+  }
+
+  #widgets-wrap > #information-widgets-right {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: start;
+    justify-content: center;
+  }
+}
+
+/* Notification centre — inserted by custom.js beside the date widget. */
+.notification-centre-button {
+  position: relative;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  place-items: center;
+  margin-right: 0.75rem;
+  border: 1px solid rgb(148 163 184 / 0.18);
+  border-radius: 9999px;
+  color: rgb(226 232 240 / 0.9);
+  background: rgb(15 23 42 / 0.28);
+  transition: background 150ms ease, border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.notification-centre-button:hover {
+  border-color: rgb(148 163 184 / 0.35);
+  background: rgb(51 65 85 / 0.55);
+  transform: translateY(-1px);
+}
+
+.notification-centre-button svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#notification-centre-badge {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.35rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.25rem;
+  border: 2px solid rgb(15 23 42);
+  border-radius: 9999px;
+  color: white;
+  background: rgb(244 63 94);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 0.95rem;
+  text-align: center;
+}
+
+#notification-centre-badge[hidden] {
+  display: none;
+}
+
+.notification-centre-overlay {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  visibility: hidden;
+  border: 0;
+  opacity: 0;
+  background: rgb(2 6 23 / 0.58);
+  backdrop-filter: blur(2px);
+  transition: visibility 200ms ease, opacity 200ms ease;
+}
+
+.notification-centre-drawer {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  right: 0;
+  display: flex;
+  width: min(28rem, 100vw);
+  height: 100dvh;
+  flex-direction: column;
+  border-left: 1px solid rgb(148 163 184 / 0.18);
+  color: rgb(226 232 240);
+  background: rgb(15 23 42 / 0.96);
+  box-shadow: -20px 0 60px rgb(2 6 23 / 0.45);
+  backdrop-filter: blur(20px);
+  transform: translateX(102%);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.notification-centre-open {
+  overflow: hidden;
+}
+
+body.notification-centre-open .notification-centre-overlay {
+  visibility: visible;
+  opacity: 1;
+}
+
+body.notification-centre-open .notification-centre-drawer {
+  transform: translateX(0);
+}
+
+.notification-centre-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem 1.25rem 1rem;
+  border-bottom: 1px solid rgb(148 163 184 / 0.14);
+}
+
+.notification-centre-header h2 {
+  margin: 0;
+  color: rgb(248 250 252);
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.notification-centre-header p {
+  margin: 0.2rem 0 0;
+  color: rgb(148 163 184);
+  font-size: 0.72rem;
+}
+
+.notification-centre-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.notification-centre-actions button {
+  border: 0;
+  border-radius: 0.45rem;
+  color: rgb(148 163 184);
+  background: transparent;
+  font-size: 0.72rem;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.notification-centre-actions button:hover {
+  color: rgb(226 232 240);
+  background: rgb(51 65 85 / 0.65);
+}
+
+.notification-centre-actions button:not(.notification-centre-close) {
+  padding: 0.45rem 0.6rem;
+}
+
+.notification-centre-actions .notification-centre-close {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.notification-centre-filters {
+  display: flex;
+  gap: 0.45rem;
+  padding: 0.8rem 1.25rem;
+  border-bottom: 1px solid rgb(148 163 184 / 0.12);
+}
+
+.notification-centre-filters button {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgb(148 163 184 / 0.15);
+  border-radius: 9999px;
+  color: rgb(148 163 184);
+  background: rgb(30 41 59 / 0.38);
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: color 150ms ease, border-color 150ms ease,
+    background 150ms ease;
+}
+
+.notification-centre-filters button:hover,
+.notification-centre-filters button.active {
+  border-color: rgb(56 189 248 / 0.35);
+  color: rgb(224 242 254);
+  background: rgb(14 116 144 / 0.3);
+}
+
+.notification-centre-list {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.65rem;
+}
+
+.notification-centre-item {
+  position: relative;
+  display: block;
+  margin-bottom: 0.45rem;
+  padding: 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+  color: inherit;
+  background: rgb(30 41 59 / 0.46);
+  text-decoration: none;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.notification-centre-item.unread {
+  border-color: rgb(74 222 128 / 0.16);
+  background: rgb(22 101 52 / 0.13);
+}
+
+.notification-centre-item.unread::before {
+  position: absolute;
+  top: 0.42rem;
+  left: 0.42rem;
+  width: 0.48rem;
+  height: 0.48rem;
+  border: 2px solid rgb(15 23 42 / 0.9);
+  border-radius: 9999px;
+  background: rgb(74 222 128);
+  box-shadow: 0 0 0.55rem rgb(74 222 128 / 0.5);
+  content: "";
+}
+
+.notification-centre-item-toggle {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+.notification-centre-item:hover {
+  border-color: rgb(148 163 184 / 0.2);
+  background: rgb(51 65 85 / 0.6);
+}
+
+.notification-centre-item.priority-4,
+.notification-centre-item.priority-5 {
+  border-left-color: rgb(251 191 36 / 0.8);
+}
+
+.notification-centre-icon {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border-radius: 0.5rem;
+  object-fit: contain;
+}
+
+.notification-centre-icon-fallback {
+  display: grid;
+  place-items: center;
+  color: rgb(186 230 253);
+  background: rgb(14 116 144 / 0.3);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.notification-centre-icon-fallback.downloads {
+  color: rgb(187 247 208);
+  background: rgb(21 128 61 / 0.3);
+}
+
+.notification-centre-item-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.notification-centre-item-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.notification-centre-item-heading strong {
+  overflow: hidden;
+  color: rgb(241 245 249);
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-centre-item-heading time {
+  flex: none;
+  color: rgb(100 116 139);
+  font-size: 0.65rem;
+}
+
+.notification-centre-chevron {
+  flex: none;
+  color: rgb(100 116 139);
+  font-size: 1rem;
+  line-height: 1;
+  transform: translateY(0.15rem);
+  transition: transform 150ms ease, color 150ms ease;
+}
+
+.notification-centre-item:hover .notification-centre-chevron {
+  color: rgb(203 213 225);
+}
+
+.notification-centre-item.expanded .notification-centre-chevron {
+  transform: rotate(180deg) translateY(-0.15rem);
+}
+
+.notification-centre-item p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0.28rem 0 0.5rem;
+  color: rgb(203 213 225);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.notification-centre-item.expanded p {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
+.notification-centre-item.expanded .notification-centre-item-heading strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.notification-centre-open-link {
+  display: inline-block;
+  margin: 0.55rem 0 0 2.75rem;
+  padding: 0.28rem 0.5rem;
+  border-radius: 0.4rem;
+  color: rgb(125 211 252);
+  background: rgb(14 116 144 / 0.2);
+  font-size: 0.66rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.notification-centre-open-link:hover {
+  color: rgb(224 242 254);
+  background: rgb(14 116 144 / 0.38);
+}
+
+.notification-centre-topic {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border-radius: 9999px;
+  color: rgb(125 211 252);
+  background: rgb(14 116 144 / 0.22);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.notification-centre-topic.downloads {
+  color: rgb(134 239 172);
+  background: rgb(21 128 61 / 0.22);
+}
+
+.notification-centre-state {
+  margin: 3rem 1rem;
+  color: rgb(148 163 184);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.notification-centre-error {
+  color: rgb(253 164 175);
+}
+
+.notification-centre-toast {
+  position: fixed;
+  z-index: 120;
+  top: 1rem;
+  right: 1rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgb(74 222 128 / 0.28);
+  border-radius: 0.65rem;
+  color: rgb(220 252 231);
+  background: rgb(20 83 45 / 0.96);
+  box-shadow: 0 12px 30px rgb(2 6 23 / 0.35);
+  font-size: 0.74rem;
+  font-weight: 650;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-0.5rem);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.notification-centre-toast::before {
+  margin-right: 0.45rem;
+  content: "\2713";
+}
+
+.notification-centre-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 639px) {
+  .notification-centre-button {
+    margin-right: 0.5rem;
+  }
+
+  .notification-centre-drawer {
+    width: 100vw;
+    border-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-centre-drawer,
+  .notification-centre-overlay,
+  .notification-centre-button,
+  .notification-centre-toast {
+    transition: none;
+  }
+}

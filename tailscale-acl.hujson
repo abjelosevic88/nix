@@ -1,0 +1,77 @@
+// Tailscale ACL policy for the bjelke homelab tailnet.
+// Apply: Tailscale admin console -> Access Controls -> paste -> Save.
+// (The console keeps version history, so a bad save is one click to revert.)
+//
+// BEFORE applying, tag these devices (admin console -> Machines -> ... -> Edit ACL tags):
+//   tag:server -> abjelosevic-home-nixos, abjelosevic-home-server
+//   tag:nas    -> abjelosevic-truenas-scale
+//   tag:kvm    -> glkvm
+//   tag:guest  -> living-room-tv, odin2-portal, nikole-pasica-home-pc
+// Everything else (MacBook, iPhone, home-windows, home-ubuntu) stays untagged
+// and counts as a trusted personal device (autogroup:member).
+//
+// IMPORTANT: tag the guest devices FIRST. Until tagged, they count as
+// autogroup:member and get full access; tagging is what demotes them.
+{
+	"tagOwners": {
+		"tag:server": ["autogroup:admin"],
+		"tag:nas":    ["autogroup:admin"],
+		"tag:kvm":    ["autogroup:admin"],
+		"tag:guest":  ["autogroup:admin"],
+	},
+
+	"hosts": {
+		"nixos":       "100.65.31.101",  // abjelosevic-home-nixos
+		"home-server": "100.111.226.27", // abjelosevic-home-server (also tailnet DNS resolver)
+		"nas":         "100.108.205.37", // abjelosevic-truenas-scale
+		"kvm":         "100.123.195.17", // glkvm
+		"gaming-pc":   "100.85.37.97",   // abjelosevic-home-windows (Apollo/Sunshine host)
+	},
+
+	"acls": [
+		// 1. DNS. Every device on the tailnet resolves through home-server.
+		//    Remove this and the whole tailnet goes dark. Keep it first and broad.
+		{"action": "accept", "src": ["*"], "dst": ["home-server:53"]},
+
+		// 2. Trusted personal devices: web (Caddy) on both servers and the NAS UI,
+		//    SSH everywhere I administer, Forgejo's git-over-ssh, and the KVM console.
+		//    Add ports here when a service is exposed directly instead of via Caddy.
+		{"action": "accept", "src": ["autogroup:member"], "dst": [
+			"tag:server:80,443", // all *.bjelke.org services behind Caddy
+			"tag:server:22",     // ssh to both mini PCs
+			"home-server:2222",  // Forgejo git-over-ssh (git.bjelke.org)
+			"tag:server:8096",   // Jellyfin direct port (apps that bypass Caddy)
+			"tag:nas:80,443,22", // TrueNAS web UI + ssh
+			"kvm:80,443",        // GLKVM web console — personal devices ONLY
+			"gaming-pc:47990,47984,47989,48010,47998-48000", // Apollo admin UI + Moonlight from trusted devices
+		]},
+
+		// 3. Guest / low-trust screens (TV, handheld, family PC): media only.
+		{"action": "accept", "src": ["tag:guest"], "dst": [
+			"nixos:443,8096",       // Jellyfin on the NixOS box
+			"home-server:443,8096", // Jellyfin/media on the Ubuntu server
+		]},
+
+		// 3b. Game streaming: Artemis/Moonlight (Odin, living-room TV) ->
+		//     Apollo/Sunshine on the Windows PC. Pairing + RTSP + AV streams.
+		//     Deliberately NOT 47990 (Apollo's admin UI) — that stays trusted-only.
+		{"action": "accept", "src": ["tag:guest"], "dst": [
+			"gaming-pc:47984,47989,48010,47998-48000",
+		]},
+
+		// 4. Server <-> server: unrestricted. They monitor each other (Glances,
+		//    homepage widgets), share assets, and will exchange backups.
+		{"action": "accept", "src": ["tag:server"], "dst": ["tag:server:*"]},
+
+		// 5. Servers -> NAS: NFS mounts and ssh/rsync/restic for backups.
+		{"action": "accept", "src": ["tag:server"], "dst": ["tag:nas:111,2049,22"]},
+	],
+
+	// Notably absent, on purpose:
+	// - No rule with src tag:guest beyond rule 3 -> guests cannot see SSH,
+	//   the NAS, the KVM, or each other.
+	// - No rule with src tag:nas or src tag:kvm -> the NAS and KVM can be
+	//   reached but never initiate connections; a compromised appliance
+	//   cannot pivot into the servers.
+	// - Nothing reaches kvm except untagged personal devices (rule 2).
+}

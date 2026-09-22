@@ -320,6 +320,7 @@
     gh
     go
     python3
+    _1password-cli        # `op` — 1Password secret injection (pnpm create-env:1password:*)
 
     # containers: colima is macOS-only (home/mac.nix); the docker CLI + TUI are
     # in home/docker.nix, imported per host so the NAS can skip them.
