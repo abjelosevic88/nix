@@ -63,10 +63,22 @@ in
         Restart = "always";
         RestartSec = 5;
 
-        # Paseo launches agent and voice processes inside this service cgroup.
-        # Apply pressure before they threaten the rest of the server, then
-        # restart the complete service if aggregate usage continues growing.
-        MemoryHigh = "10G";
+        # Paseo launches agent and voice processes inside this service cgroup,
+        # so a runaway child is accounted against the daemon's own budget. The
+        # worst offender is the athena pre-commit hook: lint-staged runs
+        # `turbo run check-types --concurrency=4`, and each tsgo worker peaks
+        # near 4G, so one agent commit can ask for ~16G.
+        #
+        # Deliberately no MemoryHigh. MemoryHigh throttles without ever killing,
+        # so the cgroup parked between the high and max marks for as long as the
+        # offender ran: systemd still reported the unit active, but the daemon's
+        # event loop stalled for seconds, git and gh blew their 30s timeouts,
+        # and the desktop app read the whole host as down. Nothing recovered it
+        # short of killing the child by hand. A bare MemoryMax instead invokes
+        # the cgroup OOM killer, and with memory.oom.group left at 0 that kills
+        # the single fattest process — always a multi-gigabyte tsgo, never the
+        # ~200M daemon. The typecheck then fails loudly, which is the outcome we
+        # want; the daemon and every attached agent session stay up.
         MemoryMax = "12G";
         MemorySwapMax = "2G";
       };

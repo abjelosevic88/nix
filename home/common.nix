@@ -16,6 +16,9 @@
     VISUAL = "nvim";
   };
 
+  # User-managed executables, including the vendor-installed claude and codex CLIs.
+  home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
+
   programs.tmux = {
     enable = true;
     prefix = "C-a";
@@ -259,12 +262,13 @@
     };
   };
 
-  # Preserve Claude Code deep links without relying on its self-installer.
+  # Preserve Claude Code deep links; the CLI itself comes from Anthropic's
+  # installer, outside Home Manager.
   xdg.desktopEntries = lib.mkIf pkgs.stdenv.isLinux {
     claude-code-url-handler = {
       name = "Claude Code URL Handler";
       comment = "Handle claude-cli:// deep links for Claude Code";
-      exec = "${pkgs.claude-code}/bin/claude --handle-uri %u";
+      exec = "claude --handle-uri %u";
       noDisplay = true;
       type = "Application";
       mimeType = [ "x-scheme-handler/claude-cli" ];
@@ -315,8 +319,6 @@
     # One Nix-owned Node toolchain replaces fnm and global npm/pnpm installs.
     nodejs_24
     pnpm
-    claude-code
-    codex
     gh
     go
     python3

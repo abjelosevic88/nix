@@ -280,7 +280,7 @@ Grouped in [home/common.nix](home/common.nix):
 - **essentials:** ripgrep, fd, bat, jq, tree, htop, lsof
 - **nix tooling:** nix-output-monitor, nvd
 - **nvim ecosystem:** see LSP list above
-- **interactive:** eza, Node 24, pnpm, Claude Code, Codex, gh, go
+- **interactive:** eza, Node 24, pnpm, gh, go
 - **http:** xh
 
 Three groups are deliberately *not* in `common.nix`, because the right answer differs per machine:

@@ -56,8 +56,6 @@
             # Keep fast-moving interactive tools current without moving the
             # rest of each machine away from the pinned release branch.
             lazygit = unstable.lazygit;
-            claude-code = unstable.claude-code;
-            codex = unstable.codex;
           })
       ];
 
