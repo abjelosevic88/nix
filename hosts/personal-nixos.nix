@@ -8,11 +8,14 @@
   #   - home/tailscale.nix — `services.tailscale` installs a CLI matching its own
   #                          daemon in /run/current-system/sw/bin, so a second
   #                          Home Manager copy would be redundant.
+  # Plus home/podman.nix: podman is only installed by this host's NixOS config,
+  # so the rootless docker-socket wiring belongs here alone.
   imports = [
     ../home/common.nix
     ../home/linux.nix
     ../home/linux-desktop.nix
     ../home/roles/personal.nix
     ../home/docker.nix
+    ../home/podman.nix
   ];
 }
