@@ -9,6 +9,7 @@
     ./beszel-agent.nix
     ./caddy.nix
     ./dawarich.nix
+    ./glances.nix
     ./homepage
     ./jellyfin.nix
   ];

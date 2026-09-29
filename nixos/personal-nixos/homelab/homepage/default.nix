@@ -1,4 +1,7 @@
 { config, ... }:
+let
+  glancesUrl = "http://127.0.0.1:${toString config.services.glances.port}";
+in
 {
   # Homelab dashboard at https://lab.bjelke.org (or http://nixos:8082 from the
   # box itself). Full replica of the Ubuntu server's Homepage implementation
@@ -143,6 +146,43 @@
               siteMonitor = "http://127.0.0.1:8096";
             };
           }
+        ];
+      }
+      {
+        Monitoring = [
+          {
+            Glances = {
+              href = "https://glances.lab.bjelke.org";
+              description = "System monitor";
+              icon = "glances.svg";
+              siteMonitor = glancesUrl;
+              widget = {
+                type = "glances";
+                url = glancesUrl;
+                version = 4;
+                metric = "info";
+              };
+            };
+          }
+        ];
+      }
+      {
+        # Live graphs from the same Glances API, one card per metric.
+        "System graphs" = map (metric: {
+          ${metric.name} = {
+            widget = {
+              type = "glances";
+              url = glancesUrl;
+              version = 4;
+              metric = metric.id;
+              chart = true;
+            };
+          };
+        }) [
+          { name = "CPU"; id = "cpu"; }
+          { name = "Memory"; id = "memory"; }
+          { name = "Network"; id = "network:wlp0s20f3"; }
+          { name = "Processes"; id = "process"; }
         ];
       }
       {
