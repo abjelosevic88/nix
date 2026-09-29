@@ -6,6 +6,7 @@
 {
   imports = [
     ./adventurelog.nix
+    ./beszel-agent.nix
     ./caddy.nix
     ./dawarich.nix
     ./homepage

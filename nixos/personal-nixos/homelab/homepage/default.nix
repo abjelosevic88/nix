@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 {
   # Homelab dashboard at https://lab.bjelke.org (or http://nixos:8082 from the
   # box itself). Full replica of the Ubuntu server's Homepage implementation
@@ -120,7 +120,7 @@
               href = "https://dawarich.lab.bjelke.org";
               description = "Location history";
               icon = "mdi-map-marker-path";
-              siteMonitor = "http://127.0.0.1:3000";
+              siteMonitor = "http://127.0.0.1:${toString config.services.dawarich.webPort}";
             };
           }
           {
