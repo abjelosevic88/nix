@@ -12,5 +12,6 @@
     ./glances.nix
     ./homepage
     ./jellyfin.nix
+    ./scrutiny.nix
   ];
 }
