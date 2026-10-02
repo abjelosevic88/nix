@@ -77,17 +77,17 @@
     "paseo": {
       "flake": false,
       "locked": {
-        "lastModified": 1790102053,
-        "narHash": "sha256-5pjFV28DmKsptnAajWEWeOAvkur3QkJAHSJZyfiqRh4=",
+        "lastModified": 1790723637,
+        "narHash": "sha256-jbiQMZUho0yqi0DFXPeBxFbvldL/GCQ5h8XuHcU7wg4=",
         "owner": "getpaseo",
         "repo": "paseo",
-        "rev": "81865852011df86aa0ad0ae411cb2f5e4078153f",
+        "rev": "919c737c1948c5a16220307403a82e90d3e27ea0",
         "type": "github"
       },
       "original": {
         "owner": "getpaseo",
         "repo": "paseo",
-        "rev": "81865852011df86aa0ad0ae411cb2f5e4078153f",
+        "rev": "919c737c1948c5a16220307403a82e90d3e27ea0",
         "type": "github"
       }
     },

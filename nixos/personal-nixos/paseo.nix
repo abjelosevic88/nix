@@ -6,7 +6,7 @@
 }:
 let
   paseoPackage = (pkgs.callPackage "${paseoSrc}/nix/package.nix" {
-    npmDepsHash = "sha256-9UWtpZrCdyYyGq3HGNgSpU1+2Imu3oYqtSumq2DtANc=";
+    npmDepsHash = "sha256-tT7qrQpJSxXTJMc9KinfnDQoeTdvLt7NWanYANKunqg=";
   }).overrideAttrs (previousAttrs: {
     # npm rebuild inherits --ignore-scripts on this nixpkgs release,
     # so compile node-pty explicitly and add the omitted binary to the output.
